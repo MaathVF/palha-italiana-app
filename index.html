@@ -225,6 +225,16 @@ dialog::backdrop{background:rgba(30,18,12,.55)}
 .grupo-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .grupo-top b{font:700 17px/1.2 var(--font-d)}
 .acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.lote-nums{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 8px}
+.lote-nums div{background:var(--surface-2);border-radius:10px;padding:8px 10px;min-width:0}
+.lote-nums b{display:block;font:700 18px/1.15 var(--font-d)}
+.lote-nums small{font-size:11.5px;color:var(--muted)}
+.lote-barra{display:flex;height:8px;border-radius:99px;overflow:hidden;background:var(--surface-2);margin:0 0 12px}
+.lote-barra .v{background:var(--ok)} .lote-barra .p{background:var(--erro)}
+.neg{color:var(--erro)}
+.check{display:flex;gap:10px;align-items:center;font-size:14px;margin:2px 0 14px;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.alerta{grid-column:1/-1;color:var(--warn);font-weight:600;margin-top:4px}
 </style>
 </head>
 <body>
@@ -276,7 +286,13 @@ TABELAS.forEach(t => S[t] = []);
 /* ============ UTILITÁRIOS ============ */
 const $ = s => document.querySelector(s);
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const num = v => { if (typeof v === 'number') return v; if (v === '' || v == null) return 0; const n = parseFloat(String(v).replace(/\./g,'').replace(',', '.')); return isNaN(n) ? parseFloat(v) || 0 : n; };
+const num = v => {
+  if (typeof v === 'number') return v; if (v === '' || v == null) return 0;
+  const s = String(v).trim();
+  if (/^-?\d+(\.\d+)?$/.test(s)) return parseFloat(s);           // 3.95 (campo numérico)
+  const n = parseFloat(s.replace(/\./g,'').replace(',', '.'));     // 1.234,56 (formato BR)
+  return isNaN(n) ? 0 : n;
+};
 const pct = v => { const n = num(v); return n > 1 ? n / 100 : n; };
 const r2 = v => Math.round(v * 100) / 100;
 const brl = v => (Number(v) || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
@@ -337,8 +353,31 @@ const adicional = aplic => S.CustosAdicionais.filter(c => ativo(c) && c.aplicaca
 const rendPadrao = rec => num((receita(rec) || {}).rendimento_padrao) || num(S.config.rendimento_padrao) || 16;
 const custoUnit = (rec, rend) => { const r = num(rend) || rendPadrao(rec); return (custoForma(rec) + adicional('Por fornada')) / r + adicional('Por unidade'); };
 
+/* ---- Lotes (cada fornada é um lote, com o custo gravado no dia da produção) ---- */
+const loteDe = id => id ? S.Fornadas.find(f => String(f.id) === String(id)) : null;
+const nomeLote = f => f ? 'Lote ' + (num(f.lote) || '?') : '';
+const proximoLote = () => S.Fornadas.reduce((m, f) => Math.max(m, num(f.lote)), 0) + 1;
+function custoLote(rec, rend){
+  const ci = custoForma(rec), ca = adicional('Por fornada'), r = num(rend) || rendPadrao(rec);
+  return { custo_ingredientes:r2(ci), custo_adicional:r2(ca), custo_total:r2(ci + ca), custo_unitario: r ? Math.round((ci + ca) / r * 10000) / 10000 : 0 };
+}
+function resumoLote(f){
+  const vs = S.Vendas.filter(v => String(v.lote) === String(f.id));
+  const prod = num(f.rendimento_real), vend = soma(vs,'quantidade'), perd = num(f.perdas);
+  const cu = num(f.custo_unitario) || (prod ? num(f.custo_total) / prod : 0);
+  const rest = Math.max(prod - vend - perd, 0);
+  const vendido = soma(vs,'valor'), custoVend = soma(vs,'custo_preparo'), repasse = soma(vs,'repasse'), reserva = soma(vs,'reserva');
+  const custoPerdas = r2(perd * cu);
+  return { vs, prod, vend, perd, rest, cu, custo:num(f.custo_total), vendido, recebido:soma(vs.filter(v => v.status === 'Pago'),'valor'),
+    custoVend, repasse, reserva, custoPerdas, lucro: r2(soma(vs,'lucro_disponivel') - custoPerdas), estoque: r2(rest * cu) };
+}
+const lotesDe = rec => S.Fornadas.filter(f => f.receita === rec).sort((a,b) => String(b.data).localeCompare(String(a.data)) || num(b.lote) - num(a.lote));
+function loteSugerido(rec){ const ls = lotesDe(rec); return ls.find(f => resumoLote(f).rest > 0) || ls[0] || null; }
+
 function calcVenda(v){
-  const custo = num(v.quantidade) * custoUnit(v.receita, v.rendimento) + adicional('Por pedido');
+  const f = loteDe(v.lote);
+  const unit = f && num(f.custo_unitario) ? num(f.custo_unitario) + adicional('Por unidade') : custoUnit(v.receita, v.rendimento);
+  const custo = num(v.quantidade) * unit + adicional('Por pedido');
   const valor = num(v.valor);
   const repasse = valor * pct((local(v.local) || {}).repasse_percentual);
   const reserva = S.config.regra_reserva === 'percentual' ? valor * pct(S.config.reserva_percentual) : custo;
@@ -363,7 +402,7 @@ function rota(){
   const h = (location.hash.slice(1) || 'inicio').split('/');
   const base = h[0];
   document.querySelectorAll('[data-r]').forEach(a => {
-    const r = a.dataset.r; a.classList.toggle('on', r === base || (r === 'mais' && ['cad','itens','config'].includes(base)));
+    const r = a.dataset.r; a.classList.toggle('on', r === base || (r === 'mais' && ['cad','itens','config','lotes'].includes(base)));
   });
   $('#fab').hidden = !['inicio','vendas'].includes(base);
   const v = $('#view');
@@ -376,6 +415,7 @@ function rota(){
     else if (base === 'cad') v.innerHTML = telaCadastro(decodeURIComponent(h[1]));
     else if (base === 'itens') v.innerHTML = telaItens(decodeURIComponent(h[1]));
     else if (base === 'config') v.innerHTML = telaConfig();
+    else if (base === 'lotes') v.innerHTML = telaLotes();
     else v.innerHTML = telaInicio();
   }catch(e){ console.error(e); v.innerHTML = `<div class="panel vazio"><b>Algo deu errado nesta tela</b>${esc(e.message)}</div>`; }
   ligar(base);
@@ -441,8 +481,17 @@ function telaInicio(){
         <div><i class="seg-lucro"></i><span><b class="num">${brl(luc)}</b><small>Lucro disponível</small></span></div>
       </div>` : `<p class="muted" style="margin:0">Nenhuma venda em ${nomeMes(S.mes)}. Registre a primeira com o botão “Nova venda”.</p>`}
     </section>
-    <div class="grid g2">${metaHTML}${porLocal}</div>
+    <div class="grid g2">${metaHTML}${porLocal}${painelLotes()}</div>
   </div>`;
+}
+function painelLotes(){
+  const ab = S.Fornadas.map(f => ({f, r:resumoLote(f)})).filter(x => x.r.rest > 0)
+    .sort((a,b) => String(b.f.data).localeCompare(String(a.f.data))).slice(0, 4);
+  if (!ab.length) return '';
+  return `<section class="panel"><div class="grupo-top"><h2 style="margin:0">Lotes em venda</h2><a class="btn" href="#lotes">Ver lotes</a></div>
+    <div class="scroll-x" style="margin-top:10px"><table><thead><tr><th>Lote</th><th class="r">Restam</th><th class="r">Lucro até agora</th></tr></thead><tbody>
+    ${ab.map(({f, r}) => `<tr><td>${nomeLote(f)} · ${esc(f.receita)}</td><td class="r num">${r.rest}</td><td class="r num ${r.lucro < 0 ? 'neg' : ''}">${brl(r.lucro)}</td></tr>`).join('')}
+    </tbody></table></div></section>`;
 }
 
 /* ============ TELA: VENDAS ============ */
@@ -459,7 +508,7 @@ function telaVendas(){
     <select data-fl aria-label="Filtrar por local"><option value="">Todos os locais</option>${S.Locais.map(l => `<option ${S.filtroLocal === l.nome ? 'selected' : ''}>${esc(l.nome)}</option>`).join('')}</select></div>
   <section class="panel">${vs.length ? `<div class="lista">${vs.map(v => `
     <button class="item" data-venda="${esc(v.id)}"><div class="t"><b>${esc(v.cliente || 'Sem nome')}</b>
-      <small>${dataBR(v.data)} · ${num(v.quantidade)} ${esc(v.receita || '')}${v.combo ? ' · ' + esc(v.combo) : ''}${v.local ? ' · ' + esc(v.local) : ''}</small></div>
+      <small>${dataBR(v.data)} · ${num(v.quantidade)} ${esc(v.receita || '')}${v.combo ? ' · ' + esc(v.combo) : ''}${v.local ? ' · ' + esc(v.local) : ''}${loteDe(v.lote) ? ' · ' + nomeLote(loteDe(v.lote)) : ''}</small></div>
       <div class="v"><b class="num">${brl(v.valor)}</b><span class="badge ${v.status === 'Pago' ? 'b-ok' : 'b-warn'}">${v.status === 'Pago' ? 'Pago' : 'Pendente'}</span></div></button>`).join('')}</div>`
     : `<div class="vazio"><b>Nenhuma venda aqui</b>Mude o mês ou os filtros, ou registre uma nova venda.</div>`}</section>`;
 }
@@ -467,6 +516,7 @@ function telaVendas(){
 function formVenda(id){
   if (!S.Receitas.length){ toast('Cadastre ao menos uma receita antes de vender.', true); location.hash = '#cad/Receitas'; return; }
   const v = id ? {...S.Vendas.find(x => String(x.id) === String(id))} : {data:hoje(), quantidade:1, receita:S.Receitas.filter(ativo)[0]?.nome || S.Receitas[0].nome, status:'Pendente', forma_pagamento:'Pix'};
+  if (!id) v.lote = loteSugerido(v.receita)?.id || '';
   let valorManual = !!id;
   const opts = (arr, sel) => arr.map(n => `<option ${n === sel ? 'selected' : ''}>${esc(n)}</option>`).join('');
   const m = abrirModal(id ? 'Editar venda' : 'Nova venda', `
@@ -478,7 +528,8 @@ function formVenda(id){
     <div class="duas"><div class="campo"><label for="v_qtd">Quantidade</label><div class="stepper"><button type="button" data-q="-1" aria-label="Menos">−</button><input id="v_qtd" type="number" min="1" inputmode="numeric" value="${num(v.quantidade) || 1}"><button type="button" data-q="1" aria-label="Mais">+</button></div></div>
       <div class="campo"><label for="v_valor">Valor (R$)</label><input id="v_valor" type="number" step="0.01" inputmode="decimal" value="${v.valor ?? ''}"></div></div>
     <div class="duas"><div class="campo"><label for="v_local">Local</label><select id="v_local"><option value="">—</option>${opts(S.Locais.map(l => l.nome), v.local)}</select></div>
-      <div class="campo"><label for="v_rend">Rendimento da fornada</label><input id="v_rend" type="number" inputmode="numeric" placeholder="Padrão" value="${v.rendimento || ''}"></div></div>
+      <div class="campo"><label for="v_lote">Lote</label><select id="v_lote"></select></div></div>
+    <div class="campo" id="v_rendbox"><label for="v_rend">Rendimento da fornada</label><input id="v_rend" type="number" inputmode="numeric" placeholder="Padrão" value="${v.rendimento || ''}"></div>
     <div class="campo"><label>Pagamento</label><div class="seg" id="v_status"><button type="button" data-st="Pendente">Pendente</button><button type="button" data-st="Pago">Pago</button></div></div>
     <div class="duas" id="v_pago"><div class="campo"><label for="v_forma">Forma</label><select id="v_forma">${opts(['Pix','Dinheiro','Cartão'], v.forma_pagamento)}</select></div>
       <div class="campo"><label for="v_dpag">Data do pagamento</label><input type="date" id="v_dpag" value="${esc(v.data_pagamento || hoje())}"></div></div>
@@ -489,15 +540,30 @@ function formVenda(id){
 
   const q = s => m.querySelector(s);
   let st = v.status === 'Pago' ? 'Pago' : 'Pendente';
+  const loteSel = () => loteDe(q('#v_lote').value);
   const lerV = () => ({ data:q('#v_data').value, cliente:q('#v_cliente').value.trim(), receita:v.receita, quantidade:num(q('#v_qtd').value),
-    rendimento:q('#v_rend').value ? num(q('#v_rend').value) : '', combo:q('#v_combo').value, valor:num(q('#v_valor').value),
+    lote: loteSel() ? loteSel().id : '',
+    rendimento: loteSel() ? num(loteSel().rendimento_real) : (q('#v_rend').value ? num(q('#v_rend').value) : ''), combo:q('#v_combo').value, valor:num(q('#v_valor').value),
     local:q('#v_local').value, status:st, forma_pagamento: st === 'Pago' ? q('#v_forma').value : '',
     data_pagamento: st === 'Pago' ? q('#v_dpag').value : '', observacao:q('#v_obs').value.trim() });
   const prev = () => {
     const c = calcVenda(lerV());
     q('#v_prev').innerHTML = `<span>Custo de preparo</span><b>${brl(c.custo_preparo)}</b><span>Repasse</span><b>${brl(c.repasse)}</b>
-      <span>Reserva</span><b>${brl(c.reserva)}</b><div class="tot"><span>Lucro disponível</span><span>${brl(c.lucro_disponivel)}</span></div>`;
+      <span>Reserva</span><b>${brl(c.reserva)}</b><div class="tot"><span>Lucro disponível</span><span>${brl(c.lucro_disponivel)}</span></div>${avisoLote()}`;
   };
+  const avisoLote = () => {
+    const f = loteSel(); if (!f) return '';
+    const rest = resumoLote(f).rest + (id && String(v.lote) === String(f.id) ? num(v.quantidade) : 0);
+    return num(q('#v_qtd').value) > rest ? `<div class="alerta">${nomeLote(f)} tem só ${rest} ${rest === 1 ? 'unidade restante' : 'unidades restantes'}.</div>` : '';
+  };
+  const desenharLotes = sel => {
+    const ls = lotesDe(v.receita);
+    q('#v_lote').innerHTML = ls.map(f => { const r = resumoLote(f);
+      return `<option value="${esc(f.id)}" ${String(f.id) === String(sel) ? 'selected' : ''}>${nomeLote(f)} · ${dataBR(f.data)} · ${r.rest} ${r.rest === 1 ? 'resta' : 'restam'}</option>`; }).join('')
+      + `<option value="" ${sel ? '' : 'selected'}>Sem lote (preço atual)</option>`;
+    q('#v_rendbox').style.display = q('#v_lote').value ? 'none' : '';
+  };
+  desenharLotes(v.lote);
   const auto = () => { if (valorManual) return; const a = valorAuto(v.receita, num(q('#v_qtd').value)); if (a){ q('#v_valor').value = a.valor; q('#v_combo').value = a.combo; } prev(); };
   const desenharPrecos = () => {
     const ps = precosDe(v.receita);
@@ -508,7 +574,8 @@ function formVenda(id){
   desenharPrecos(); desenharStatus(); if (!id) auto(); else prev();
 
   q('#v_rec').onclick = e => { const b = e.target.closest('[data-rec]'); if (!b) return; v.receita = b.dataset.rec;
-    q('#v_rec').querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === b)); desenharPrecos(); valorManual = false; auto(); };
+    q('#v_rec').querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === b)); desenharPrecos(); desenharLotes(loteSugerido(v.receita)?.id || ''); valorManual = false; auto(); };
+  q('#v_lote').onchange = () => { q('#v_rendbox').style.display = q('#v_lote').value ? 'none' : ''; prev(); };
   q('#v_precos').onclick = e => { const b = e.target.closest('[data-p]'); if (!b) return; const p = S.Precos.find(x => String(x.id) === b.dataset.p);
     q('#v_qtd').value = num(p.quantidade); q('#v_valor').value = num(p.preco); q('#v_combo').value = p.descricao; valorManual = false; prev(); };
   m.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { q('#v_qtd').value = Math.max(1, num(q('#v_qtd').value) + num(b.dataset.q)); valorManual = false; auto(); });
@@ -583,7 +650,7 @@ function telaMais(){
   return `<div class="head"><div><h1>Mais</h1><p class="sub">Registros do dia a dia e cadastros</p></div></div>
   <div class="secao">Registros</div><div class="tiles">
     ${t('#cad/Compras','Compras',`${S.Compras.length} registradas`)}
-    ${t('#cad/Fornadas','Fornadas',`${S.Fornadas.length} registradas`)}
+    ${t('#lotes','Lotes e fornadas',`${S.Fornadas.length} ${S.Fornadas.length === 1 ? 'lote' : 'lotes'} · custo e lucro de cada um`)}
     ${t('#cad/Clientes','Clientes',`${S.Clientes.length} cadastrados`)}</div>
   <div class="secao">Cadastros</div><div class="tiles">
     ${t('#cad/Ingredientes','Ingredientes','Preço e tamanho das embalagens')}
@@ -622,9 +689,9 @@ const CAD = {
   Clientes:{titulo:'Clientes', sub:'Clientes novos são cadastrados sozinhos ao registrar uma venda.', campos:[
     {k:'nome',l:'Nome',req:1},{k:'telefone',l:'Telefone (WhatsApp)',t:'tel'},{k:'local_padrao',l:'Local habitual',t:'select',ref:REF('Locais')},{k:'observacao',l:'Observação'}],
     linha:c => [c.nome, [c.telefone, c.local_padrao].filter(Boolean).join(' · '), '', '']},
-  Compras:{titulo:'Compras', sub:'Registre o que foi gasto de verdade em cada compra.', mes:1, campos:[
+  Compras:{titulo:'Compras', sub:'Ao salvar, o preço do ingrediente passa a ser o desta compra. As fornadas já feitas não mudam.', mes:1, campos:[
     {k:'data',l:'Data',t:'date',req:1},{k:'mercado',l:'Mercado',dl:['Atacadão','Assaí','Pão de Açúcar','Shopee']},
-    {k:'ingrediente',l:'Item',req:1,dl:REF('Ingredientes')},{k:'quantidade',l:'Quantidade',t:'number'},{k:'unidade',l:'Unidade',t:'select',o:['un','g','kg','ml','L','pacote']},
+    {k:'ingrediente',l:'Item',req:1,dl:REF('Ingredientes')},{k:'quantidade',l:'Quantidade (potes, latas ou peso)',t:'number'},{k:'unidade',l:'Unidade',t:'select',o:['un','g','kg','ml','L','pacote']},
     {k:'valor',l:'Valor pago (R$)',t:'money',req:1},{k:'observacao',l:'Observação'}],
     linha:c => [c.ingrediente, `${dataBR(c.data)}${c.mercado ? ' · ' + c.mercado : ''}${c.quantidade ? ' · ' + num(c.quantidade) + ' ' + (c.unidade || '') : ''}`, brl(c.valor), '']},
   Fornadas:{titulo:'Fornadas', sub:'Produção e perdas de cada fornada.', mes:1, campos:[
@@ -684,6 +751,7 @@ function campoHTML(f, val){
   return `<div class="campo"><label for="${id}">${f.l}</label>${input}</div>`;
 }
 function formCadastro(tab, id, preset = {}){
+  if (tab === 'Fornadas') return formFornada(id);
   const c = CAD[tab]; const r = id ? S[tab].find(x => String(x.id) === String(id)) : preset;
   const m = abrirModal((id ? 'Editar ' : 'Adicionar ') + c.titulo.toLowerCase().replace(/s$/,'').replace(/ e combos$/,''), c.campos.map(f => campoHTML(f, r[f.k])).join(''), {salvar:'Salvar', excluir:!!id});
   m.onSalvar = async () => {
@@ -695,9 +763,113 @@ function formCadastro(tab, id, preset = {}){
       o[f.k] = v;
     }
     if (o.nome && S[tab].some(x => x.nome && x.nome.toLowerCase() === String(o.nome).toLowerCase() && String(x.id) !== String(id))) throw new Error('Já existe um cadastro com esse nome.');
-    await salvar(tab, o, id); toast('Salvo');
+    await salvar(tab, o, id);
+    if (tab === 'Compras') return toast(await aplicarPrecoCompra(o, id));
+    toast('Salvo');
   };
   m.onExcluir = async () => { await excluir(tab, id); toast('Excluído'); };
+}
+
+/* ============ COMPRA ATUALIZA O PREÇO DO INGREDIENTE ============ */
+async function aplicarPrecoCompra(c, id){
+  const nome = String(c.ingrediente || '').trim().toLowerCase();
+  const i = S.Ingredientes.find(x => String(x.nome).toLowerCase() === nome);
+  if (!i) return 'Compra salva. Esse item não está nos ingredientes, então nenhum preço mudou.';
+  const maisNova = S.Compras.some(x => String(x.id) !== String(id) && String(x.ingrediente).trim().toLowerCase() === nome && String(x.data) > String(c.data));
+  if (maisNova) return `Compra salva. Já existe uma compra mais recente de ${i.nome}; o preço continua o daquela.`;
+  const q = num(c.quantidade), emb = num(i.qtd_embalagem), u = c.unidade || 'un', iu = i.unidade || 'g';
+  if (!(q > 0) || !(num(c.valor) > 0) || !emb) return `Compra salva. Informe a quantidade para atualizar o preço de ${i.nome}.`;
+  const fator = ({g:{g:1, kg:1000}, ml:{ml:1, L:1000}, un:{un:1}})[iu] || {};
+  let base = 0;
+  if (u === 'pacote' || (u === 'un' && iu !== 'un')) base = q * emb;
+  else if (fator[u]) base = q * fator[u];
+  if (!base) return `Compra salva. A unidade "${u}" não combina com ${iu}, então o preço de ${i.nome} não mudou.`;
+  const novo = r2(num(c.valor) / base * emb), antigo = num(i.preco_embalagem);
+  if (novo === r2(antigo)) return `Compra salva. ${i.nome} continua a ${brl(novo)}.`;
+  await salvar('Ingredientes', {preco_embalagem:novo, mercado:c.mercado || i.mercado || ''}, i.id);
+  return `${i.nome}: ${brl(antigo)} → ${brl(novo)} por ${emb} ${iu}`;
+}
+
+/* ============ FORNADA = LOTE ============ */
+function formFornada(id){
+  if (!S.Receitas.length){ toast('Cadastre ao menos uma receita antes.', true); location.hash = '#cad/Receitas'; return; }
+  const f = id ? {...loteDe(id)} : {data:hoje(), receita:S.Receitas.filter(ativo)[0]?.nome || S.Receitas[0].nome, lote:proximoLote()};
+  const nomes = S.Receitas.filter(r => ativo(r) || r.nome === f.receita).map(r => r.nome);
+  const m = abrirModal(id ? 'Editar ' + nomeLote(f) : 'Nova fornada · Lote ' + f.lote, `
+    <div class="duas"><div class="campo"><label for="f_data">Data</label><input type="date" id="f_data" value="${esc(f.data)}"></div>
+      <div class="campo"><label for="f_rec">Receita</label><select id="f_rec">${nomes.map(n => `<option ${n === f.receita ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div></div>
+    <div class="duas"><div class="campo"><label for="f_rend">Unidades produzidas</label><input id="f_rend" type="number" inputmode="numeric" value="${esc(f.rendimento_real ?? '')}" placeholder="${rendPadrao(f.receita)}"></div>
+      <div class="campo"><label for="f_perd">Perdas (unidades)</label><input id="f_perd" type="number" inputmode="numeric" value="${esc(f.perdas ?? '')}" placeholder="0"></div></div>
+    ${id ? `<label class="check"><input type="checkbox" id="f_recalc"> Recalcular o custo com os preços de hoje</label>` : ''}
+    <div class="campo"><label for="f_obs">Observação</label><input id="f_obs" value="${esc(f.observacao || '')}"></div>
+    <div class="previa num" id="f_prev"></div>`, {salvar:'Salvar fornada', excluir:!!id});
+  const q = s => m.querySelector(s);
+  const ler = () => {
+    const rec = q('#f_rec').value, rend = num(q('#f_rend').value) || rendPadrao(rec);
+    const atual = !id || (q('#f_recalc') && q('#f_recalc').checked) || rec !== f.receita || !num(f.custo_total);
+    const c = atual ? custoLote(rec, rend) : { custo_ingredientes:num(f.custo_ingredientes), custo_adicional:num(f.custo_adicional),
+      custo_total:num(f.custo_total), custo_unitario: Math.round(num(f.custo_total) / rend * 10000) / 10000 };
+    return { atual, d:{ lote:num(f.lote) || proximoLote(), data:q('#f_data').value, receita:rec, rendimento_real:rend, perdas:num(q('#f_perd').value), observacao:q('#f_obs').value.trim(), ...c } };
+  };
+  const prev = () => { const {atual, d} = ler();
+    q('#f_prev').innerHTML = `<span>Ingredientes</span><b>${brl(d.custo_ingredientes)}</b><span>Custos por fornada</span><b>${brl(d.custo_adicional)}</b>
+      <span>Custo do lote</span><b>${brl(d.custo_total)}</b><div class="tot"><span>Custo por unidade (${d.rendimento_real} un)</span><span>${brl(d.custo_unitario)}</span></div>
+      <div class="muted" style="grid-column:1/-1;margin-top:4px">${atual ? 'Com os preços de hoje dos ingredientes.' : 'Com os preços gravados quando o lote foi criado.'}</div>`; };
+  ['#f_rec','#f_rend','#f_perd','#f_recalc'].forEach(s => { const el = q(s); if (el) el.oninput = el.onchange = prev; });
+  prev();
+  m.onSalvar = async () => {
+    const {d} = ler();
+    if (!d.data) throw new Error('Informe a data.');
+    if (d.perdas > d.rendimento_real) throw new Error('As perdas não podem passar das unidades produzidas.');
+    await salvar('Fornadas', d, id);
+    let n = 0;
+    if (id) for (const v of S.Vendas.filter(x => String(x.lote) === String(id))){
+      const c = calcVenda({...v, rendimento:d.rendimento_real});
+      if (c.custo_preparo !== r2(num(v.custo_preparo)) || c.lucro_disponivel !== r2(num(v.lucro_disponivel))){ await salvar('Vendas', {...c, rendimento:d.rendimento_real}, v.id); n++; }
+    }
+    toast(id ? (n ? `Lote salvo e ${n} ${n === 1 ? 'venda recalculada' : 'vendas recalculadas'}` : 'Lote salvo') : `Lote ${d.lote} criado: ${brl(d.custo_unitario)} por unidade`);
+  };
+  m.onExcluir = async () => {
+    const n = S.Vendas.filter(x => String(x.lote) === String(id)).length;
+    if (n) throw new Error(`Este lote tem ${n} ${n === 1 ? 'venda ligada' : 'vendas ligadas'}. Troque o lote dessas vendas antes de excluir.`);
+    await excluir('Fornadas', id); toast('Lote excluído');
+  };
+}
+
+function telaLotes(){
+  const filtro = S.filtroLote || 'todos';
+  let ls = S.Fornadas.map(f => ({f, r:resumoLote(f)}));
+  if (filtro === 'abertos') ls = ls.filter(x => x.r.rest > 0);
+  if (filtro === 'encerrados') ls = ls.filter(x => x.r.rest === 0);
+  ls.sort((a,b) => String(b.f.data).localeCompare(String(a.f.data)) || num(b.f.lote) - num(a.f.lote));
+  const chip = (k, t) => `<button class="chip ${filtro === k ? 'on' : ''}" data-flote="${k}">${t}</button>`;
+  const semLote = S.Vendas.filter(v => !loteDe(v.lote)).length;
+  const linha = (t, val, cls = '') => `<tr><td>${t}</td><td class="r num ${cls}">${val}</td></tr>`;
+  const card = ({f, r}) => {
+    const pv = r.prod ? r.vend / r.prod * 100 : 0, pp = r.prod ? r.perd / r.prod * 100 : 0;
+    return `<section class="panel"><div class="grupo-top"><div><b>${nomeLote(f)} · ${esc(f.receita)}</b>
+      <div class="muted" style="font-size:13px">${dataBR(f.data)} · custo do lote ${brl(r.custo)} · ${brl(r.cu)} por unidade</div></div>
+      <span class="badge ${r.rest > 0 ? 'b-warn' : 'b-ok'}">${r.rest > 0 ? 'Em venda' : 'Encerrado'}</span></div>
+      <div class="lote-nums"><div><b class="num">${r.prod}</b><small>Produzidas</small></div><div><b class="num">${r.vend}</b><small>Vendidas</small></div>
+        <div><b class="num">${r.perd}</b><small>Perdidas</small></div><div><b class="num">${r.rest}</b><small>Restam</small></div></div>
+      <div class="lote-barra" aria-hidden="true"><div class="v" style="width:${pv.toFixed(1)}%"></div><div class="p" style="width:${pp.toFixed(1)}%"></div></div>
+      <table><tbody>
+        ${linha('Vendido' + (r.vendido - r.recebido > 0.004 ? ` <small class="muted">(${brl(r.vendido - r.recebido)} a receber)</small>` : ''), brl(r.vendido))}
+        ${linha('− Custo das unidades vendidas', brl(r.custoVend))}
+        ${linha('− Repasse', brl(r.repasse))}
+        ${linha('− Reserva da empresa', brl(r.reserva))}
+        ${r.perd ? linha(`− Perdas (${r.perd} un)`, brl(r.custoPerdas)) : ''}
+        <tr><td><b>Lucro do lote</b></td><td class="r num ${r.lucro < 0 ? 'neg' : ''}"><b>${brl(r.lucro)}</b></td></tr></tbody></table>
+      ${r.rest > 0 ? `<p class="muted" style="font-size:13px;margin:8px 0 0">${r.rest} em estoque, que custaram ${brl(r.estoque)}. O lucro cresce conforme forem vendidas.</p>` : ''}
+      <div class="acoes"><button class="btn" data-edit="Fornadas" data-id="${esc(f.id)}">Editar lote</button></div></section>`;
+  };
+  return `<div class="head"><div><a href="#mais" class="muted" style="text-decoration:none;font-weight:600">‹ Mais</a><h1>Lotes</h1>
+    <p class="sub">Cada fornada é um lote, com o custo dos ingredientes do dia em que foi feita</p></div>
+    <button class="btn pri" data-novo="Fornadas">${I.mais1} Nova fornada</button></div>
+  <div class="filtros"><div class="chips">${chip('todos','Todos')}${chip('abertos','Em venda')}${chip('encerrados','Encerrados')}</div></div>
+  ${semLote ? `<p class="muted" style="font-size:13px;margin:0 0 12px">${semLote} ${semLote === 1 ? 'venda está' : 'vendas estão'} sem lote e não entram nesta conta.</p>` : ''}
+  ${ls.length ? `<div class="grid g2">${ls.map(card).join('')}</div>`
+    : `<section class="panel vazio"><b>Nenhum lote ${filtro === 'todos' ? 'ainda' : 'aqui'}</b>Registre uma fornada sempre que produzir. O app grava o custo daquele dia e liga as vendas a ela.</section>`}`;
 }
 
 /* ============ CONFIGURAÇÕES ============ */
@@ -745,6 +917,7 @@ function ligar(base){
   v.querySelectorAll('[data-nova]').forEach(b => b.onclick = () => formVenda());
   v.querySelectorAll('[data-venda]').forEach(b => b.onclick = () => formVenda(b.dataset.venda));
   v.querySelectorAll('[data-fs]').forEach(b => b.onclick = () => { S.filtroStatus = b.dataset.fs; rota(); });
+  v.querySelectorAll('[data-flote]').forEach(b => b.onclick = () => { S.filtroLote = b.dataset.flote; rota(); });
   const fl = v.querySelector('[data-fl]'); if (fl) fl.onchange = () => { S.filtroLocal = fl.value; rota(); };
   v.querySelectorAll('[data-novo]').forEach(b => b.onclick = () => formCadastro(b.dataset.novo));
   v.querySelectorAll('[data-edit]').forEach(b => { b.onclick = () => formCadastro(b.dataset.edit, b.dataset.id);
