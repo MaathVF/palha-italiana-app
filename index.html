@@ -241,6 +241,30 @@ dialog::backdrop{background:rgba(30,18,12,.55)}
 .lote-campo{display:flex;flex-direction:column;align-items:flex-start;width:100%;text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 12px;min-height:44px;cursor:pointer}
 .lote-campo.pendente{border-color:var(--warn)}
 .lote-campo small{color:var(--warn);font-weight:600;font-size:12px}
+.grid>*,.stack>*,main{min-width:0}
+a.btn:not(.pri):not(.zap){color:var(--text)}
+td.num{white-space:nowrap}
+@media (max-width:640px){.graf .g-txt{font-size:24px}}
+.kpis.k6{grid-template-columns:repeat(2,1fr)}
+@media (min-width:700px){.kpis.k6{grid-template-columns:repeat(3,1fr)}}
+.delta{display:block;font-size:12px;font-weight:600;margin-top:4px;color:var(--muted)}
+.delta.up{color:var(--ok)} .delta.down{color:var(--erro)}
+.kpi.lucro .delta{color:#CDB49C} .kpi.lucro .delta.up{color:#A8DDB5} .kpi.lucro .delta.down{color:#F5AFA6}
+.legenda.l2{grid-template-columns:repeat(2,1fr)}
+.graf{width:100%;height:auto;display:block;margin-top:10px;overflow:visible}
+.g-grade{stroke:var(--line);stroke-dasharray:3 5} .g-eixo{stroke:var(--line);stroke-width:1.5}
+.g-txt{fill:var(--muted);font:500 15px var(--font-b)} .g-sel{fill:var(--text);font-weight:700}
+.g-vend{fill:var(--caramelo)} .g-luc{fill:#7FB08A}
+.leg-mini{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--muted)}
+.leg-mini span{display:inline-flex;align-items:center;gap:6px}
+.leg-mini i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.hbars{display:flex;flex-direction:column;gap:2px}
+.hb{display:grid;grid-template-columns:minmax(70px,32%) 1fr auto;gap:10px;align-items:center;padding:4px 0;font-size:14px}
+.hb-l{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hb-t{height:10px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.hb-t div{height:100%;background:var(--accent);border-radius:99px}
+.hb b{font-weight:600;font-size:13.5px;white-space:nowrap}
+.grande{font:700 22px/1.2 var(--font-d);margin:2px 0}
 .check{display:flex;gap:10px;align-items:center;font-size:14px;margin:2px 0 14px;cursor:pointer}
 .check input{width:18px;height:18px;accent-color:var(--accent)}
 .alerta{grid-column:1/-1;color:var(--warn);font-weight:600;margin-top:4px}
@@ -280,7 +304,7 @@ const I = {
   zap:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.4 14.2c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.4-.7-2.8-1.1-4.6-4-4.8-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.3 0 .5l-.4.6-.3.4c.1.2.6 1 1.3 1.6.9.8 1.6 1 1.9 1.1.2.1.4.1.5-.1l.8-.9c.2-.2.3-.2.6-.1l1.9.9c.3.1.4.2.5.3 0 .1 0 .7-.3 1.4z"/></svg>'
 };
 const ROTAS = [
-  {id:'inicio',  nome:'Início',    ico:I.inicio},
+  {id:'inicio',  nome:'Painel',    ico:I.inicio},
   {id:'vendas',  nome:'Vendas',    ico:I.vendas},
   {id:'receber', nome:'A receber', ico:I.receber},
   {id:'repasses',nome:'Repasses',  ico:I.repasses},
@@ -431,7 +455,291 @@ function rota(){
 }
 function seletorMes(){ return `<div class="mes"><button data-mes="-1" aria-label="Mês anterior">${I.esq}</button><span>${nomeMes(S.mes)}</span><button data-mes="1" aria-label="Próximo mês">${I.dir}</button></div>`; }
 
-/* ============ TELA: INÍCIO ============ */
+/* ============ TELA: PAINEL ============ */
+const diasEntre = (a, b) => { const p = s => { const [y,m,d] = String(s).slice(0,10).split('-').map(Number); return Date.UTC(y, m - 1, d); }; return Math.round((p(b) - p(a)) / 864e5); };
+const fimMes = m => { const [a,mm] = m.split('-').map(Number); return m + '-' + String(new Date(a, mm, 0).getDate()).padStart(2,'0'); };
+const mesCurto = m => { const [a,mm] = m.split('-').map(Number); return new Date(a, mm - 1, 1).toLocaleDateString('pt-BR', {month:'short'}).replace('.', ''); };
+const dataLonga = s => s ? `${String(s).slice(8,10)}/${String(s).slice(5,7)}/${String(s).slice(0,4)}` : '';
+const vendasDoMes = m => S.Vendas.filter(v => String(v.data).slice(0,7) === m);
+const pctTxt = (x, c = 0) => ((Number.isFinite(x) ? x : 0) * 100).toLocaleString('pt-BR', {minimumFractionDigits:c, maximumFractionDigits:c}) + '%';
+const brlCurto = v => Math.abs(v) >= 1000 ? 'R$ ' + (v / 1000).toLocaleString('pt-BR', {maximumFractionDigits:1}) + ' mil' : brl(v).replace(',00', '');
+const precoAvulso = rec => num((S.Precos.find(p => p.receita === rec && ativo(p) && num(p.quantidade) === 1) || {}).preco);
+const vazioP = t => `<p class="muted" style="margin:0;font-size:14px">${t}</p>`;
+const notaP = t => `<p class="muted" style="margin:10px 0 0;font-size:13px">${t}</p>`;
+const subP = t => `<p class="muted" style="margin:-6px 0 10px;font-size:13px">${t}</p>`;
+const juntar = (...ps) => { const x = ps.filter(Boolean); return !x.length ? '' : x.length === 1 ? x[0] : `<div class="grid g2">${x.join('')}</div>`; };
+const PALETA = ['var(--caramelo)', 'var(--ninho)', 'var(--ok)', 'var(--erro)'];
+
+function numeros(vs){
+  const vendido = soma(vs,'valor'), luc = soma(vs,'lucro_disponivel'), un = soma(vs,'quantidade');
+  return { vendido, luc, un, n:vs.length, custo:soma(vs,'custo_preparo'), rep:soma(vs,'repasse'), res:soma(vs,'reserva'),
+    margem: vendido ? luc / vendido : 0, ticket: vs.length ? vendido / vs.length : 0, porUn: un ? vendido / un : 0 };
+}
+function delta(at, ant, mAnt, pp){
+  const rot = ' vs ' + mesCurto(mAnt);
+  if (pp){ const d = (at - ant) * 100; if (Math.abs(d) < 0.05) return `<small class="delta">igual${rot}</small>`;
+    return `<small class="delta ${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'} ${Math.abs(d).toLocaleString('pt-BR', {maximumFractionDigits:1})} p.p.${rot}</small>`; }
+  if (!ant) return at ? `<small class="delta">sem vendas em ${mesCurto(mAnt)}</small>` : '';
+  const d = (at - ant) / Math.abs(ant);
+  if (Math.abs(d) < 0.005) return `<small class="delta">igual${rot}</small>`;
+  return `<small class="delta ${d > 0 ? 'up' : 'down'}">${d > 0 ? '▲' : '▼'} ${pctTxt(Math.abs(d))}${rot}</small>`;
+}
+function hbars(linhas, cor){
+  const max = Math.max(...linhas.map(l => l.v), 0.0001);
+  return `<div class="hbars">${linhas.map(l => `<div class="hb"><span class="hb-l" title="${esc(l.t)}">${esc(l.t)}</span>
+    <div class="hb-t"><div style="width:${(Math.max(l.v, 0) / max * 100).toFixed(1)}%${cor || l.cor ? ';background:' + (l.cor || cor) : ''}"></div></div><b class="num">${l.f ?? brl(l.v)}</b></div>`).join('')}</div>`;
+}
+
+/* ---- gráficos em SVG ---- */
+function svgMensal(ds){
+  const W = 640, H = 240, pt = 26, pb = 30, pl = 4, pr = 4, n = ds.length;
+  const max = Math.max(...ds.map(d => Math.max(d.vend, d.luc)), 1);
+  const y = v => pt + (H - pt - pb) * (1 - Math.max(v, 0) / max);
+  const gw = (W - pl - pr) / n, bw = Math.min(28, gw * .34);
+  let g = [0.5, 1].map(k => `<line x1="${pl}" x2="${W - pr}" y1="${y(max * k)}" y2="${y(max * k)}" class="g-grade"/><text x="${pl}" y="${y(max * k) - 6}" class="g-txt">${brlCurto(max * k)}</text>`).join('')
+    + `<line x1="${pl}" x2="${W - pr}" y1="${y(0)}" y2="${y(0)}" class="g-eixo"/>`;
+  ds.forEach((d, i) => {
+    const cx = pl + gw * i + gw / 2, sel = d.m === S.mes;
+    g += `<g${sel ? '' : ' opacity=".5"'}><rect x="${cx - bw - 1.5}" y="${y(d.vend)}" width="${bw}" height="${y(0) - y(d.vend)}" rx="4" class="g-vend"><title>${nomeMes(d.m)}: vendido ${brl(d.vend)}</title></rect>
+      <rect x="${cx + 1.5}" y="${y(d.luc)}" width="${bw}" height="${y(0) - y(d.luc)}" rx="4" class="g-luc"><title>${nomeMes(d.m)}: lucro ${brl(d.luc)}</title></rect></g>
+      <text x="${cx}" y="${H - 8}" text-anchor="middle" class="g-txt${sel ? ' g-sel' : ''}">${mesCurto(d.m)}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" class="graf" role="img" aria-label="Vendido e lucro mês a mês">${g}</svg>`;
+}
+function svgCustoLotes(ls){
+  const W = 640, H = 240, pt = 26, pb = 30, pl = 4, pr = 4;
+  const vals = ls.map(f => num(f.custo_unitario));
+  let mn = Math.min(...vals), mx = Math.max(...vals); const pad = (mx - mn) * .2 || mx * .1 || 1; mn = Math.max(0, mn - pad); mx += pad;
+  const n = ls.length, x = i => n === 1 ? W / 2 : pl + 30 + (W - pl - pr - 50) * i / (n - 1), y = v => pt + (H - pt - pb) * (1 - (v - mn) / (mx - mn));
+  const recs = [...new Set(ls.map(f => f.receita))];
+  let g = [0, .5, 1].map(k => { const v = mn + (mx - mn) * k; return `<line x1="${pl}" x2="${W - pr}" y1="${y(v)}" y2="${y(v)}" class="g-grade"/>${k ? `<text x="${pl}" y="${y(v) - 6}" class="g-txt">${brl(v)}</text>` : ''}`; }).join('');
+  recs.forEach((r, ri) => {
+    const pts = ls.map((f, i) => ({f, i})).filter(p => p.f.receita === r), cor = PALETA[ri % PALETA.length];
+    if (pts.length > 1) g += `<polyline points="${pts.map(p => `${x(p.i)},${y(num(p.f.custo_unitario))}`).join(' ')}" fill="none" stroke="${cor}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+    g += pts.map(p => `<circle cx="${x(p.i)}" cy="${y(num(p.f.custo_unitario))}" r="5.5" fill="${cor}" stroke="var(--surface)" stroke-width="2"><title>${nomeLote(p.f)} · ${esc(r)} · ${dataBR(p.f.data)}: ${brl(p.f.custo_unitario)} por unidade</title></circle>`).join('');
+  });
+  g += ls.map((f, i) => `<text x="${x(i)}" y="${H - 8}" text-anchor="middle" class="g-txt">L${num(f.lote)}</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" class="graf" role="img" aria-label="Custo por unidade em cada lote">${g}</svg>
+    <div class="leg-mini" style="margin-top:6px">${recs.map((r, i) => `<span><i style="background:${PALETA[i % PALETA.length]}"></i>${esc(r)}</span>`).join('')}</div>`;
+}
+
+/* ---- blocos do painel ---- */
+function pEvolucao(){
+  if (!S.Vendas.length) return '';
+  const primeiro = S.Vendas.map(v => String(v.data).slice(0,7)).sort()[0];
+  const ms = []; for (let i = 11; i >= 0; i--){ const m = somaMes(S.mes, -i); if (m >= primeiro) ms.push(m); }
+  if (!ms.length) return '';
+  const ds = ms.map(m => { const x = numeros(vendasDoMes(m)); return {m, vend:x.vendido, luc:x.luc}; });
+  return `<section class="panel"><div class="grupo-top"><h2 style="margin:0">Evolução mês a mês</h2>
+    <div class="leg-mini"><span><i style="background:var(--caramelo)"></i>Vendido</span><span><i style="background:#7FB08A"></i>Lucro</span></div></div>${svgMensal(ds)}</section>`;
+}
+function pDestino(A){
+  if (!A.vendido) return '';
+  const w = x => Math.max(x, 0) / Math.max(A.vendido, 0.01);
+  return `<section class="panel"><h2>Para onde vai cada real vendido</h2>
+    <div class="barra" role="img" aria-label="Divisão do valor vendido"><div class="seg-custo" style="flex-grow:${w(A.custo)}"></div><div class="seg-repasse" style="flex-grow:${w(A.rep)}"></div>
+      <div class="seg-reserva" style="flex-grow:${w(A.res)}"></div><div class="seg-lucro" style="flex-grow:${w(A.luc)}"></div></div>
+    <div class="legenda l2">
+      <div><i class="seg-custo"></i><span><b class="num">${brl(A.custo)}</b><small>Reposição dos ingredientes</small></span></div>
+      <div><i class="seg-repasse"></i><span><b class="num">${brl(A.rep)}</b><small>Repasses</small></span></div>
+      <div><i class="seg-reserva"></i><span><b class="num">${brl(A.res)}</b><small>Reserva da empresa</small></span></div>
+      <div><i class="seg-lucro"></i><span><b class="num">${brl(A.luc)}</b><small>Lucro disponível</small></span></div></div></section>`;
+}
+function pCaixa(){
+  const fim = fimMes(S.mes);
+  const pagas = S.Vendas.filter(v => v.status === 'Pago' && String(v.data) <= fim);
+  const pend = S.Vendas.filter(v => v.status !== 'Pago' && String(v.data) <= fim);
+  const compras = S.Compras.filter(c => String(c.data) <= fim);
+  if (!pagas.length && !compras.length) return '';
+  const rep = soma(pagas,'custo_preparo'), res = soma(pagas,'reserva'), gasto = soma(compras,'valor'), saldo = r2(rep + res - gasto);
+  const vira = soma(pend,'custo_preparo') + soma(pend,'reserva');
+  return `<section class="panel"><h2>Caixa da empresa</h2>${subP(`Vendas já recebidas e compras até o fim de ${nomeMes(S.mes)}`)}
+    <table><tbody><tr><td>Separado para repor ingredientes</td><td class="r num">${brl(rep)}</td></tr>
+      <tr><td>Reserva da empresa</td><td class="r num">${brl(res)}</td></tr>
+      <tr><td>− Compras</td><td class="r num">${brl(gasto)}</td></tr>
+      <tr><td><b>Saldo em caixa</b></td><td class="r num ${saldo < 0 ? 'neg' : ''}"><b>${brl(saldo)}</b></td></tr></tbody></table>
+    ${saldo < 0 ? notaP('As compras passaram do valor separado. A diferença saiu do lucro ou do seu bolso.') : ''}
+    ${vira > 0.004 ? notaP(`Quando as vendas pendentes forem pagas, entram mais ${brl(vira)} neste caixa.`) : ''}</section>`;
+}
+function pMeta(A){
+  const meta = num(S.config.meta_lucro_mensal), atual = hoje().slice(0,7);
+  if (S.mes > atual) return '';
+  const corrente = S.mes === atual;
+  let pv = A.luc, proj = '';
+  if (corrente){
+    const d = num(hoje().slice(8,10)), tot = num(fimMes(S.mes).slice(8,10));
+    pv = A.luc / d * tot;
+    proj = `<p style="margin:12px 0 0;font-size:14px">No ritmo atual, o mês deve fechar com <b class="num">${brl(A.vendido / d * tot)}</b> vendidos e <b class="num">${brl(pv)}</b> de lucro.</p>`;
+  }
+  if (!meta) return `<section class="panel"><h2>${corrente ? 'Projeção do mês' : 'Fechamento do mês'}</h2>
+    ${corrente ? proj.replace('margin:12px', 'margin:0') : `<p style="margin:0">Lucro de <b class="num">${brl(A.luc)}</b> em ${A.un} unidades.</p>`}
+    ${notaP('Defina uma meta mensal em <a href="#config">Configurações</a> para acompanhar o progresso.')}</section>`;
+  const p = Math.min(Math.max(A.luc / meta, 0), 1), falta = Math.max(meta - A.luc, 0), porUn = A.un ? A.luc / A.un : 0;
+  const selo = A.luc >= meta ? '<span class="badge b-ok">Meta atingida</span>'
+    : corrente ? (pv >= meta ? '<span class="badge b-ok">No caminho</span>' : '<span class="badge b-warn">Abaixo do ritmo</span>') : '<span class="badge b-warn">Não atingida</span>';
+  return `<section class="panel"><div class="grupo-top"><h2 style="margin:0">Meta do mês</h2>${selo}</div>
+    <div class="num" style="margin-top:12px"><b>${brl(A.luc)}</b> <span class="muted">de ${brl(meta)}</span></div>
+    <div class="meta-trilho"><div style="width:${(p * 100).toFixed(1)}%"></div></div>
+    <p class="muted" style="margin:0;font-size:14px">${falta > 0 ? `Faltam ${brl(falta)}${porUn > 0 ? `, cerca de ${Math.ceil(falta / porUn)} unidades` : ''}.` : 'Parabéns, meta batida.'}</p>${proj}</section>`;
+}
+function tabelaGrupo(vm, chave, vazio, comRepasse){
+  const nomes = [...new Set(vm.map(v => v[chave] || vazio))];
+  const ls = nomes.map(n => { const x = vm.filter(v => (v[chave] || vazio) === n); const un = soma(x,'quantidade'), luc = soma(x,'lucro_disponivel');
+    return {n, un, vend:soma(x,'valor'), rep:soma(x,'repasse'), luc, lu: un ? luc / un : 0}; }).sort((a,b) => b.vend - a.vend);
+  return { ls, html:`<div class="scroll-x"><table><thead><tr><th>${chave === 'local' ? 'Local' : 'Receita'}</th><th class="r">Unid.</th><th class="r">Vendido</th>${comRepasse ? '<th class="r">Repasse</th>' : ''}<th class="r">Lucro/un</th><th class="r">Lucro</th></tr></thead><tbody>
+    ${ls.map(x => `<tr><td>${esc(x.n)}</td><td class="r num">${x.un}</td><td class="r num">${brl(x.vend)}</td>${comRepasse ? `<td class="r num">${brl(x.rep)}</td>` : ''}<td class="r num">${brl(x.lu)}</td><td class="r num ${x.luc < 0 ? 'neg' : ''}">${brl(x.luc)}</td></tr>`).join('')}</tbody></table></div>` };
+}
+function pReceitas(vm){
+  const {ls, html} = tabelaGrupo(vm, 'receita', 'Sem receita');
+  const m = ls.length > 1 ? [...ls].sort((a,b) => b.lu - a.lu)[0] : null;
+  return `<section class="panel"><h2>Por receita</h2>${html}${m ? notaP(`${esc(m.n)} deixa mais lucro por unidade: ${brl(m.lu)}.`) : ''}</section>`;
+}
+function pLocais(vm){
+  const {ls, html} = tabelaGrupo(vm, 'local', 'Sem local', true);
+  const m = ls.length > 1 ? [...ls].sort((a,b) => b.lu - a.lu)[0] : null;
+  return `<section class="panel"><h2>Por local</h2>${subP('Lucro já descontado o repasse')}${html}${m ? notaP(`${esc(m.n)} é onde sobra mais por unidade: ${brl(m.lu)}.`) : ''}</section>`;
+}
+function pCombo(vm){
+  let un = 0, unBase = 0, vendBase = 0, base = 0, unDesc = 0, desc = 0;
+  vm.forEach(v => { const pa = precoAvulso(v.receita), q = num(v.quantidade); un += q; if (!pa) return;
+    unBase += q; vendBase += num(v.valor); base += q * pa; const d = q * pa - num(v.valor); if (d > 0.004){ desc += d; unDesc += q; } });
+  if (!unBase) return `<section class="panel"><h2>Avulso x combo</h2>${vazioP('Cadastre o preço avulso (1 unidade) de cada receita em <a href="#cad/Precos">Preços e combos</a> para comparar.')}</section>`;
+  const pm = vendBase / unBase, pa = base / unBase, p = unDesc / unBase;
+  return `<section class="panel"><h2>Avulso x combo</h2>
+    <div class="duas" style="margin-bottom:12px"><div><small class="muted">Preço médio por unidade</small><div class="grande num">${brl(pm)}</div><small class="muted">avulso: ${brl(pa)}</small></div>
+      <div><small class="muted">Unidades com desconto</small><div class="grande num">${pctTxt(p)}</div><small class="muted">${unDesc} de ${unBase}</small></div></div>
+    <div class="lote-barra" style="height:12px"><div class="v" style="width:${((1 - p) * 100).toFixed(1)}%;background:var(--caramelo)"></div><div style="width:${(p * 100).toFixed(1)}%;background:var(--ninho)"></div></div>
+    <div class="leg-mini"><span><i style="background:var(--caramelo)"></i>Preço cheio</span><span><i style="background:var(--ninho)"></i>Combo ou desconto</span></div>
+    ${desc > 0.004 ? notaP(`Os descontos deixaram de trazer ${brl(desc)} em relação ao preço avulso. É o preço pago para vender mais unidades.`) : ''}</section>`;
+}
+function pSemana(){
+  const fim = fimMes(S.mes) < hoje() ? fimMes(S.mes) : hoje();
+  const vs = S.Vendas.filter(v => { const d = diasEntre(v.data, fim); return d >= 0 && d < 90; });
+  if (vs.length < 3) return '';
+  const nomes = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'], un = [0,0,0,0,0,0,0];
+  vs.forEach(v => { const [a,m,d] = String(v.data).split('-').map(Number); un[new Date(a, m - 1, d).getDay()] += num(v.quantidade); });
+  const ordem = [1,2,3,4,5,6,0], best = ordem.reduce((b, i) => un[i] > un[b] ? i : b, 1);
+  return `<section class="panel"><h2>Dias da semana</h2>${subP('Unidades vendidas nos últimos 90 dias')}
+    ${hbars(ordem.map(i => ({t:nomes[i], v:un[i], f:String(un[i]), cor: i === best ? 'var(--ok)' : ''})))}
+    ${notaP(`${nomes[best]} é o dia mais forte. Uma fornada na véspera garante palha fresca para ele.`)}</section>`;
+}
+function pPagamentos(vm){
+  const pagas = vm.filter(v => v.status === 'Pago');
+  if (!pagas.length) return '';
+  const pr = pagas.filter(v => v.data_pagamento).map(v => Math.max(diasEntre(v.data, v.data_pagamento), 0));
+  const media = pr.length ? pr.reduce((s, x) => s + x, 0) / pr.length : 0, naHora = pr.length ? pr.filter(x => x === 0).length / pr.length : 0;
+  const formas = {}; pagas.forEach(v => formas[v.forma_pagamento || 'Não informado'] = (formas[v.forma_pagamento || 'Não informado'] || 0) + num(v.valor));
+  const tot = soma(pagas,'valor');
+  return `<section class="panel"><h2>Recebimentos</h2>
+    <div class="duas" style="margin-bottom:12px"><div><small class="muted">Prazo médio para pagar</small><div class="grande num">${media.toLocaleString('pt-BR', {maximumFractionDigits:1})} ${media === 1 ? 'dia' : 'dias'}</div></div>
+      <div><small class="muted">Pagas no mesmo dia</small><div class="grande num">${pctTxt(naHora)}</div></div></div>
+    ${hbars(Object.entries(formas).sort((a,b) => b[1] - a[1]).map(([t, v]) => ({t, v, f:`${brl(v)} · ${pctTxt(v / tot)}`})))}
+    ${notaP(`Vendas de ${nomeMes(S.mes)} que já foram pagas.`)}</section>`;
+}
+function pAtraso(pend){
+  if (!pend.length) return '';
+  const h = hoje(), faixas = [['Até 7 dias', 0, 7], ['8 a 30 dias', 8, 30], ['Mais de 30 dias', 31, 1e9]];
+  const fx = faixas.map(([t, a, b]) => { const x = pend.filter(v => { const d = Math.max(diasEntre(v.data, h), 0); return d >= a && d <= b; }); return {t, n:x.length, v:soma(x,'valor')}; });
+  const g = {}; pend.forEach(v => { const k = v.cliente || 'Sem nome'; g[k] ||= {v:0, d:0}; g[k].v += num(v.valor); g[k].d = Math.max(g[k].d, diasEntre(v.data, h)); });
+  const top = Object.entries(g).sort((a,b) => b[1].d - a[1].d).slice(0, 5);
+  return `<section class="panel"><div class="grupo-top"><h2 style="margin:0">A receber por atraso</h2><a class="btn" href="#receber">Cobrar</a></div>
+    <table style="margin-top:10px"><tbody>${fx.map((x, i) => `<tr><td>${x.t}</td><td class="r num">${x.n} ${x.n === 1 ? 'venda' : 'vendas'}</td><td class="r num ${i === 2 && x.v ? 'neg' : ''}">${brl(x.v)}</td></tr>`).join('')}</tbody></table>
+    <div class="secao" style="margin:14px 0 6px">Há mais tempo devendo</div>
+    <table><tbody>${top.map(([n, x]) => `<tr><td>${esc(n)}</td><td class="r num muted">${x.d === 0 ? 'hoje' : `há ${x.d} ${x.d === 1 ? 'dia' : 'dias'}`}</td><td class="r num">${brl(x.v)}</td></tr>`).join('')}</tbody></table></section>`;
+}
+function pRanking(){
+  const fim = fimMes(S.mes) < hoje() ? fimMes(S.mes) : hoje();
+  const vs = S.Vendas.filter(v => { const d = diasEntre(v.data, fim); return d >= 0 && d < 90; });
+  const g = {}; vs.forEach(v => { const k = v.cliente || 'Sem nome'; g[k] ||= {v:0, n:0}; g[k].v += num(v.valor); g[k].n++; });
+  const ls = Object.entries(g).sort((a,b) => b[1].v - a[1].v).slice(0, 8);
+  if (ls.length < 2) return '';
+  return `<section class="panel"><h2>Melhores clientes</h2>${subP('Últimos 90 dias, por valor comprado')}
+    ${hbars(ls.map(([t, x]) => ({t, v:x.v, f:`${brl(x.v)} · ${x.n}×`})))}</section>`;
+}
+function pSumidos(){
+  const h = hoje(), g = {};
+  S.Vendas.forEach(v => { const k = v.cliente; if (!k) return; g[k] ||= {ult:'', c:0, v:0}; if (String(v.data) > g[k].ult) g[k].ult = String(v.data); g[k].c++; g[k].v += num(v.valor); });
+  const ls = Object.entries(g).map(([n, x]) => ({n, ...x, d:diasEntre(x.ult, h)})).filter(x => x.d >= 30 && x.d <= 180).sort((a,b) => b.v - a.v).slice(0, 8);
+  if (!ls.length) return '';
+  const msg = n => (S.config.mensagem_oferta || 'Oi, {nome}! Tudo bem? Tem palha italiana fresquinha esta semana. Quer que eu separe para você?').replace(/\{nome\}/g, n.split(' ')[0]);
+  return `<section class="panel"><h2>Clientes sumidos</h2>${subP('Compraram antes, mas não compram há mais de 30 dias')}
+    <div class="lista">${ls.map(x => { const c = S.Clientes.find(k => k.nome === x.n), f = c && String(c.telefone || '').replace(/\D/g, '');
+      return `<div class="item" style="cursor:default"><div class="t"><b>${esc(x.n)}</b><small>Última compra há ${x.d} dias · ${x.c === 1 ? '1 compra' : x.c + ' compras'} · ${brl(x.v)}</small></div>
+      ${f ? `<a class="btn zap" target="_blank" rel="noopener" href="https://wa.me/${f.length <= 11 ? '55' + f : f}?text=${encodeURIComponent(msg(x.n))}">${I.zap} Chamar</a>` : `<a class="btn" href="#cad/Clientes">Adicionar telefone</a>`}</div>`; }).join('')}</div></section>`;
+}
+function pEstoque(){
+  if (!S.Fornadas.length) return '';
+  const lim = num(S.config.dias_alerta_lote) || 7, h = hoje();
+  const ab = S.Fornadas.map(f => ({f, r:resumoLote(f), d:diasEntre(f.data, h)})).filter(x => x.r.rest > 0).sort((a,b) => b.d - a.d);
+  if (!ab.length) return `<section class="panel"><h2>Estoque agora</h2>${vazioP('Nenhuma unidade em estoque. Hora de uma fornada?')}</section>`;
+  const tot = ab.reduce((s, x) => s + x.r.rest, 0), velhos = ab.filter(x => x.d >= lim).length;
+  return `<section class="panel"><div class="grupo-top"><h2 style="margin:0">Estoque agora</h2><span class="badge ${velhos ? 'b-warn' : 'b-ok'}">${tot} ${tot === 1 ? 'unidade' : 'unidades'}</span></div>
+    <div class="scroll-x" style="margin-top:10px"><table><thead><tr><th>Lote</th><th class="r">Restam</th><th class="r">Feito há</th></tr></thead><tbody>
+    ${ab.map(x => `<tr><td>${nomeLote(x.f)} · ${esc(x.f.receita)}</td><td class="r num">${x.r.rest}</td><td class="r num ${x.d >= lim ? 'neg' : ''}">${x.d === 0 ? 'hoje' : x.d + (x.d === 1 ? ' dia' : ' dias')}${x.d >= lim ? ' ⚠' : ''}</td></tr>`).join('')}</tbody></table></div>
+    ${velhos ? notaP(`${velhos === 1 ? 'Um lote passou' : velhos + ' lotes passaram'} de ${lim} dias. Priorize esses na venda ou faça uma promoção.`) : notaP(`Alerta configurado para lotes com ${lim} dias ou mais. Ajuste em <a href="#config">Configurações</a>.`)}</section>`;
+}
+function pProducao(){
+  if (!S.Fornadas.length) return '';
+  const taxa = fs => { const p = soma(fs,'rendimento_real'); return p ? soma(fs,'perdas') / p : 0; };
+  const doMes = S.Fornadas.filter(f => String(f.data).slice(0,7) === S.mes), todas = S.Fornadas;
+  const ref = doMes.length ? doMes : todas;
+  const rendMed = soma(ref,'rendimento_real') / ref.length, padMed = ref.reduce((s, f) => s + rendPadrao(f.receita), 0) / ref.length;
+  const giros = todas.map(f => ({f, r:resumoLote(f)})).filter(x => x.r.rest === 0 && x.r.vs.length)
+    .map(x => diasEntre(x.f.data, x.r.vs.map(v => String(v.data)).sort().pop()));
+  const giro = giros.length ? giros.reduce((s, x) => s + x, 0) / giros.length : null;
+  const cuMes = soma(doMes,'rendimento_real') ? soma(doMes,'custo_total') / soma(doMes,'rendimento_real') : 0;
+  const um = x => x.toLocaleString('pt-BR', {maximumFractionDigits:1});
+  return `<section class="panel"><h2>Produção</h2><table><tbody>
+    <tr><td>Fornadas em ${nomeMes(S.mes)}</td><td class="r num">${doMes.length} · ${soma(doMes,'rendimento_real')} un</td></tr>
+    ${cuMes ? `<tr><td>Custo médio por unidade no mês</td><td class="r num">${brl(cuMes)}</td></tr>` : ''}
+    <tr><td>Taxa de perda ${doMes.length ? 'no mês' : ''}</td><td class="r num ${taxa(ref) > .05 ? 'neg' : ''}">${pctTxt(taxa(ref), 1)}</td></tr>
+    ${doMes.length ? `<tr><td>Taxa de perda geral</td><td class="r num">${pctTxt(taxa(todas), 1)}</td></tr>` : ''}
+    <tr><td>Rendimento médio por forma</td><td class="r num">${um(rendMed)} un <span class="muted">(padrão ${um(padMed)})</span></td></tr>
+    <tr><td>Giro: dias para um lote acabar</td><td class="r num">${giro == null ? '<span class="muted">sem lote encerrado</span>' : um(giro) + (giro === 1 ? ' dia' : ' dias')}</td></tr>
+    </tbody></table></section>`;
+}
+function pCustoLotes(){
+  const ls = S.Fornadas.filter(f => num(f.custo_unitario)).sort((a,b) => String(a.data).localeCompare(String(b.data)) || num(a.lote) - num(b.lote)).slice(-12);
+  if (ls.length < 2) return '';
+  const recs = [...new Set(ls.map(f => f.receita))];
+  const notas = recs.map(r => { const x = ls.filter(f => f.receita === r); if (x.length < 2) return '';
+    const a = num(x[0].custo_unitario), b = num(x[x.length - 1].custo_unitario), d = a ? (b - a) / a : 0;
+    return Math.abs(d) < 0.005 ? `${esc(r)}: custo estável.` : `${esc(r)}: ${d > 0 ? 'subiu' : 'caiu'} ${pctTxt(Math.abs(d))} (de ${brl(a)} para ${brl(b)}).`; }).filter(Boolean);
+  return `<section class="panel"><h2>Custo por unidade em cada lote</h2>${subP('Mostra quando os ingredientes encareceram')}${svgCustoLotes(ls)}${notas.length ? notaP(notas.join(' ')) : ''}</section>`;
+}
+function pPesoIngredientes(){
+  const rs = S.Receitas.filter(ativo).filter(r => itensDe(r.nome).length && custoForma(r.nome) > 0);
+  if (!rs.length) return '';
+  return `<section class="panel"><h2>Peso de cada ingrediente</h2>${subP('Participação no custo da forma, com os preços de hoje')}
+    ${rs.map(r => { const tot = custoForma(r.nome);
+      const ls = itensDe(r.nome).map(x => ({t:x.ingrediente, v:num(x.quantidade) * custoIng(ingrediente(x.ingrediente))})).sort((a,b) => b.v - a.v);
+      return `<div style="margin-bottom:12px"><div class="grupo-top" style="margin-bottom:4px"><b style="font-size:15px">${esc(r.nome)}</b><span class="muted num" style="font-size:13px">forma ${brl(tot)}</span></div>
+        ${hbars(ls.map(l => ({t:l.t, v:l.v, f:`${pctTxt(l.v / tot)} · ${brl(l.v)}`})))}</div>`; }).join('')}</section>`;
+}
+function pGastos(){
+  const cs = S.Compras.filter(c => String(c.data).slice(0,7) === S.mes);
+  if (!cs.length) return '';
+  const agrupar = k => { const g = {}; cs.forEach(c => { const n = c[k] || 'Não informado'; g[n] = (g[n] || 0) + num(c.valor); }); return Object.entries(g).sort((a,b) => b[1] - a[1]); };
+  const tot = soma(cs,'valor');
+  return `<section class="panel"><div class="grupo-top"><h2 style="margin:0">Gastos do mês</h2><b class="num">${brl(tot)}</b></div>
+    <div class="secao" style="margin:12px 0 6px">Por mercado</div>${hbars(agrupar('mercado').map(([t, v]) => ({t, v})))}
+    <div class="secao" style="margin:14px 0 6px">Por item</div>${hbars(agrupar('ingrediente').slice(0, 8).map(([t, v]) => ({t, v})), 'var(--cacau)')}</section>`;
+}
+function pRetorno(){
+  const inv = S.Compras.filter(c => c.tipo === 'Investimento');
+  if (!inv.length) return S.Compras.length ? `<section class="panel"><h2>Retorno do investimento</h2>${vazioP('Ao registrar uma compra de forma, cortador ou equipamento, escolha o tipo “Investimento”. Aqui aparece quando o lucro pagou esses gastos.')}</section>` : '';
+  const total = soma(inv,'valor'), ini = inv.map(c => String(c.data)).sort()[0];
+  const vs = S.Vendas.filter(v => String(v.data) >= ini).sort((a,b) => String(a.data).localeCompare(String(b.data)));
+  let ac = 0, quando = '';
+  for (const v of vs){ ac += num(v.lucro_disponivel); if (!quando && ac >= total) quando = String(v.data); }
+  const p = total ? Math.min(Math.max(ac / total, 0), 1) : 0;
+  return `<section class="panel"><div class="grupo-top"><h2 style="margin:0">Retorno do investimento</h2><span class="badge ${quando ? 'b-ok' : 'b-warn'}">${quando ? 'Já se pagou' : pctTxt(p) + ' pago'}</span></div>
+    <div class="meta-trilho"><div style="width:${(p * 100).toFixed(1)}%;background:var(--ok)"></div></div>
+    <table><tbody><tr><td>Investido (${inv.map(c => esc(c.ingrediente)).join(', ')})</td><td class="r num">${brl(total)}</td></tr>
+      <tr><td>Lucro disponível desde ${dataLonga(ini)}</td><td class="r num">${brl(ac)}</td></tr></tbody></table>
+    ${notaP(quando ? `O investimento se pagou em ${dataLonga(quando)}, ${diasEntre(ini, quando)} dias depois da compra.` : `Faltam ${brl(Math.max(total - ac, 0))} de lucro para cobrir o investimento.`)}</section>`;
+}
+
 function telaInicio(){
   const passos = [
     {ok:S.Ingredientes.length, t:'Cadastre os ingredientes', link:'#cad/Ingredientes'},
@@ -441,66 +749,30 @@ function telaInicio(){
     {ok:S.Locais.length, t:'Cadastre os locais de venda e o repasse', link:'#cad/Locais'},
     {ok:S.config.regra_reserva, t:'Ajuste reserva e meta mensal', link:'#config'},
   ];
-  const faltam = passos.filter(p => !p.ok).length;
-  const inicio = faltam ? `<section class="panel" style="margin-bottom:14px"><h2>Primeiros passos</h2>
+  const inicio = passos.some(p => !p.ok) ? `<section class="panel"><h2>Primeiros passos</h2>
     <p class="muted" style="margin:0">Preencha os cadastros na ordem abaixo. Com eles, o app calcula sozinho o custo, o repasse e o lucro de cada venda.</p>
     <ol class="passos">${passos.map(p => `<li class="${p.ok ? 'feito' : ''}"><span>${p.t}</span><a class="btn" href="${p.link}">${p.ok ? 'Revisar' : 'Abrir'}</a></li>`).join('')}</ol></section>` : '';
 
-  const vm = vendasMes();
-  const vendido = soma(vm,'valor'), recebido = soma(vm.filter(v => v.status === 'Pago'),'valor');
-  const custo = soma(vm,'custo_preparo'), rep = soma(vm,'repasse'), res = soma(vm,'reserva'), luc = soma(vm,'lucro_disponivel');
-  const un = soma(vm,'quantidade');
-  const base = Math.max(vendido, 0.01);
-  const w = x => Math.max(x, 0) / base;
+  const mAnt = somaMes(S.mes, -1), vm = vendasDoMes(S.mes), A = numeros(vm), B = numeros(vendasDoMes(mAnt));
+  const pend = S.Vendas.filter(v => v.status !== 'Pago'), aRec = soma(pend,'valor'), velhas = pend.filter(v => diasEntre(v.data, hoje()) > 30).length;
+  const kpis = `<div class="kpis k6">
+    <div class="kpi"><span>Vendido</span><b class="num">${brl(A.vendido)}</b>${delta(A.vendido, B.vendido, mAnt)}</div>
+    <div class="kpi lucro"><span>Lucro disponível</span><b class="num">${brl(A.luc)}</b>${delta(A.luc, B.luc, mAnt)}</div>
+    <div class="kpi"><span>Margem de lucro</span><b class="num">${pctTxt(A.margem, 1)}</b>${A.vendido && B.vendido ? delta(A.margem, B.margem, mAnt, true) : ''}</div>
+    <div class="kpi"><span>Unidades vendidas</span><b class="num">${A.un}</b>${delta(A.un, B.un, mAnt)}</div>
+    <div class="kpi"><span>Ticket médio</span><b class="num">${brl(A.ticket)}</b><small class="delta">${A.un ? brl(A.porUn) + ' por unidade' : ''}</small></div>
+    <div class="kpi"><span>A receber (todos os meses)</span><b class="num">${brl(aRec)}</b><small class="delta ${velhas ? 'down' : ''}">${pend.length ? `${pend.length} ${pend.length === 1 ? 'venda' : 'vendas'}${velhas ? ` · ${velhas} há mais de 30 dias` : ''}` : 'Nada pendente'}</small></div></div>`;
 
-  const meta = num(S.config.meta_lucro_mensal);
-  let metaHTML = '';
-  if (meta > 0){
-    const p = Math.min(luc / meta, 1); const falta = Math.max(meta - luc, 0);
-    const porUn = un ? luc / un : 0;
-    metaHTML = `<section class="panel"><h2>Meta do mês</h2>
-      <div class="num"><b>${brl(luc)}</b> <span class="muted">de ${brl(meta)}</span></div>
-      <div class="meta-trilho"><div style="width:${(p*100).toFixed(1)}%"></div></div>
-      <p class="muted" style="margin:0">${falta > 0 ? `Faltam ${brl(falta)}${porUn > 0 ? `, cerca de ${Math.ceil(falta / porUn)} unidades no ritmo atual` : ''}.` : 'Meta atingida.'}</p></section>`;
-  }
+  const vendasMesHTML = vm.length ? [juntar(pMeta(A), pReceitas(vm)), juntar(pLocais(vm), pCombo(vm)), juntar(pSemana(), pPagamentos(vm))].join('')
+    : `<section class="panel">${vazioP(`Nenhuma venda em ${nomeMes(S.mes)}. Registre a primeira com o botão “Nova venda”.`)}</section>`;
+  const blocos = [
+    ['Cobrança e clientes', juntar(pAtraso(pend), pRanking()) + pSumidos()],
+    ['Produção e lotes', juntar(pEstoque(), pProducao()) + pCustoLotes()],
+    ['Compras e custos', juntar(pPesoIngredientes(), pGastos()) + pRetorno()],
+  ].filter(b => b[1]).map(([t, h]) => `<div class="secao" style="margin:12px 0 0">${t}</div>${h}`).join('');
 
-  const locais = [...new Set(vm.map(v => v.local || 'Sem local'))];
-  const porLocal = locais.length ? `<section class="panel"><h2>Por local</h2><div class="scroll-x"><table>
-    <thead><tr><th>Local</th><th class="r">Unid.</th><th class="r">Vendido</th><th class="r">Lucro</th></tr></thead><tbody>
-    ${locais.map(l => { const x = vm.filter(v => (v.local || 'Sem local') === l); return `<tr><td>${esc(l)}</td><td class="r num">${soma(x,'quantidade')}</td><td class="r num">${brl(soma(x,'valor'))}</td><td class="r num">${brl(soma(x,'lucro_disponivel'))}</td></tr>`; }).join('')}
-    </tbody></table></div></section>` : '';
-
-  return `<div class="head"><div><h1>Resultado do mês</h1><p class="sub">${un} unidades vendidas em ${vm.length} ${vm.length === 1 ? 'venda' : 'vendas'}</p></div>${seletorMes()}</div>
-  ${inicio}
-  <div class="stack">
-    <div class="kpis">
-      <div class="kpi"><span>Vendido</span><b class="num">${brl(vendido)}</b></div>
-      <div class="kpi"><span>Recebido</span><b class="num">${brl(recebido)}</b></div>
-      <div class="kpi"><span>A receber</span><b class="num">${brl(vendido - recebido)}</b></div>
-      <div class="kpi lucro"><span>Lucro disponível</span><b class="num">${brl(luc)}</b></div>
-    </div>
-    <section class="panel"><h2>Para onde vai cada real vendido</h2>
-      ${vendido > 0 ? `<div class="barra" role="img" aria-label="Divisão do valor vendido">
-        <div class="seg-custo" style="flex-grow:${w(custo)}"></div><div class="seg-repasse" style="flex-grow:${w(rep)}"></div>
-        <div class="seg-reserva" style="flex-grow:${w(res)}"></div><div class="seg-lucro" style="flex-grow:${w(luc)}"></div></div>
-      <div class="legenda">
-        <div><i class="seg-custo"></i><span><b class="num">${brl(custo)}</b><small>Reposição dos ingredientes</small></span></div>
-        <div><i class="seg-repasse"></i><span><b class="num">${brl(rep)}</b><small>Repasses</small></span></div>
-        <div><i class="seg-reserva"></i><span><b class="num">${brl(res)}</b><small>Reserva da empresa</small></span></div>
-        <div><i class="seg-lucro"></i><span><b class="num">${brl(luc)}</b><small>Lucro disponível</small></span></div>
-      </div>` : `<p class="muted" style="margin:0">Nenhuma venda em ${nomeMes(S.mes)}. Registre a primeira com o botão “Nova venda”.</p>`}
-    </section>
-    <div class="grid g2">${metaHTML}${porLocal}${painelLotes()}</div>
-  </div>`;
-}
-function painelLotes(){
-  const ab = S.Fornadas.map(f => ({f, r:resumoLote(f)})).filter(x => x.r.rest > 0)
-    .sort((a,b) => String(b.f.data).localeCompare(String(a.f.data))).slice(0, 4);
-  if (!ab.length) return '';
-  return `<section class="panel"><div class="grupo-top"><h2 style="margin:0">Lotes em venda</h2><a class="btn" href="#lotes">Ver lotes</a></div>
-    <div class="scroll-x" style="margin-top:10px"><table><thead><tr><th>Lote</th><th class="r">Restam</th><th class="r">Lucro até agora</th></tr></thead><tbody>
-    ${ab.map(({f, r}) => `<tr><td>${nomeLote(f)} · ${esc(f.receita)}</td><td class="r num">${r.rest}</td><td class="r num ${r.lucro < 0 ? 'neg' : ''}">${brl(r.lucro)}</td></tr>`).join('')}
-    </tbody></table></div></section>`;
+  return `<div class="head"><div><h1>Painel</h1><p class="sub">${A.un} ${A.un === 1 ? 'unidade' : 'unidades'} em ${A.n} ${A.n === 1 ? 'venda' : 'vendas'}</p></div>${seletorMes()}</div>
+  <div class="stack">${inicio}${kpis}${pEvolucao()}${juntar(pDestino(A), pCaixa())}${vendasMesHTML}${blocos}</div>`;
 }
 
 /* ============ TELA: VENDAS ============ */
@@ -739,8 +1011,8 @@ const CAD = {
   Compras:{titulo:'Compras', sub:'Ao salvar, o preço do ingrediente passa a ser o desta compra. As fornadas já feitas não mudam.', mes:1, campos:[
     {k:'data',l:'Data',t:'date',req:1},{k:'mercado',l:'Mercado',dl:['Atacadão','Assaí','Pão de Açúcar','Shopee']},
     {k:'ingrediente',l:'Item',req:1,dl:REF('Ingredientes')},{k:'quantidade',l:'Quantidade (potes, latas ou peso)',t:'number'},{k:'unidade',l:'Unidade',t:'select',o:['un','g','kg','ml','L','pacote']},
-    {k:'valor',l:'Valor pago (R$)',t:'money',req:1},{k:'observacao',l:'Observação'}],
-    linha:c => [c.ingrediente, `${dataBR(c.data)}${c.mercado ? ' · ' + c.mercado : ''}${c.quantidade ? ' · ' + num(c.quantidade) + ' ' + (c.unidade || '') : ''}`, brl(c.valor), '']},
+    {k:'valor',l:'Valor pago (R$)',t:'money',req:1},{k:'tipo',l:'Tipo',t:'select',o:['Ingrediente','Embalagem','Investimento','Outro']},{k:'observacao',l:'Observação'}],
+    linha:c => [c.ingrediente, `${dataBR(c.data)}${c.tipo && c.tipo !== 'Ingrediente' ? ' · ' + c.tipo : ''}${c.mercado ? ' · ' + c.mercado : ''}${c.quantidade ? ' · ' + num(c.quantidade) + ' ' + (c.unidade || '') : ''}`, brl(c.valor), '']},
   Fornadas:{titulo:'Fornadas', sub:'Produção e perdas de cada fornada.', mes:1, campos:[
     {k:'data',l:'Data',t:'date',req:1},{k:'receita',l:'Receita',t:'select',ref:REF('Receitas'),req:1},
     {k:'rendimento_real',l:'Rendimento real (unidades)',t:'number',req:1},{k:'perdas',l:'Perdas (unidades)',t:'number'},{k:'observacao',l:'Observação'}],
@@ -883,6 +1155,52 @@ function formFornada(id){
   };
 }
 
+/* ---- Liga vendas antigas e completa fornadas antigas ---- */
+function planoAntigos(){
+  const fornadas = S.Fornadas.filter(f => !num(f.lote) || !num(f.custo_total)).sort((a,b) => String(a.data).localeCompare(String(b.data)));
+  const plano = [], sobra = [];
+  S.Vendas.filter(v => !loteDe(v.lote)).forEach(v => {
+    const f = S.Fornadas.filter(f => f.receita === v.receita && String(f.data) <= String(v.data))
+      .sort((a,b) => String(b.data).localeCompare(String(a.data)) || num(b.lote) - num(a.lote))[0];
+    f ? plano.push({v, f}) : sobra.push(v);
+  });
+  return {fornadas, plano, sobra};
+}
+function organizarAntigos(){
+  const {fornadas, plano, sobra} = planoAntigos();
+  const porLote = {}; plano.forEach(({f}) => porLote[f.id] = (porLote[f.id] || 0) + 1);
+  const rot = f => num(f.lote) ? nomeLote(f) : `Fornada de ${dataBR(f.data)}`;
+  const m = abrirModal('Organizar registros antigos', `
+    ${fornadas.length ? `<div class="secao" style="margin:0 0 6px">Fornadas que vão receber número e custo</div>
+      <table><tbody>${fornadas.map(f => { const c = num(f.custo_total) ? null : custoLote(f.receita, f.rendimento_real);
+        return `<tr><td>${dataBR(f.data)} · ${esc(f.receita)}</td><td class="r num">${c ? brl(c.custo_total) + ' <span class="muted">(preços de hoje)</span>' : 'custo mantido'}</td></tr>`; }).join('')}</tbody></table>` : ''}
+    ${plano.length ? `<div class="secao" style="margin:16px 0 6px">Vendas que vão ser ligadas</div>
+      <table><tbody>${Object.entries(porLote).map(([fid, n]) => { const f = loteDe(fid);
+        return `<tr><td>${rot(f)} · ${esc(f.receita)}</td><td class="r num">${n} ${n === 1 ? 'venda' : 'vendas'}</td></tr>`; }).join('')}</tbody></table>
+      <p class="muted" style="font-size:13px;margin:8px 0 0">Cada venda vai para a fornada mais recente da mesma receita feita até a data da venda. Depois, dá para trocar qualquer uma abrindo a venda.</p>` : ''}
+    ${sobra.length ? `<p class="alerta" style="margin:12px 0 0">${sobra.length} ${sobra.length === 1 ? 'venda continua' : 'vendas continuam'} sem lote, porque não há fornada da mesma receita registrada antes da data ${sobra.length === 1 ? 'dela' : 'delas'}. Se quiser, registre essa fornada com a data certa e rode de novo.</p>` : ''}
+    ${plano.length ? `<label class="check" style="margin-top:14px"><input type="checkbox" id="o_recalc" checked> Recalcular custo, reserva e lucro dessas vendas com o custo do lote</label>` : ''}
+    ${!fornadas.length && !plano.length ? '<p class="muted">Nada para organizar.</p>' : ''}`,
+    {salvar: 'Organizar'});
+  m.onSalvar = async () => {
+    const botao = m.querySelector('[data-ok]'); let feitas = 0, total = fornadas.length + plano.length;
+    const passo = () => { feitas++; botao.textContent = `Salvando ${feitas} de ${total}…`; };
+    for (const f of fornadas){
+      const rend = num(f.rendimento_real) || rendPadrao(f.receita);
+      const d = { lote: num(f.lote) || proximoLote(), rendimento_real: rend };
+      Object.assign(d, num(f.custo_total) ? { custo_unitario: Math.round(num(f.custo_total) / rend * 10000) / 10000 } : custoLote(f.receita, rend));
+      await salvar('Fornadas', d, f.id); passo();
+    }
+    const recalc = m.querySelector('#o_recalc')?.checked;
+    for (const {v, f} of plano){
+      const d = { lote: f.id };
+      if (recalc){ const rend = num(loteDe(f.id).rendimento_real); Object.assign(d, calcVenda({...v, lote:f.id, rendimento:rend}), {rendimento:rend}); }
+      await salvar('Vendas', d, v.id); passo();
+    }
+    toast(`${fornadas.length ? fornadas.length + (fornadas.length === 1 ? ' fornada completada' : ' fornadas completadas') : ''}${fornadas.length && plano.length ? ' e ' : ''}${plano.length ? plano.length + (plano.length === 1 ? ' venda ligada' : ' vendas ligadas') : ''}`);
+  };
+}
+
 function telaLotes(){
   const filtro = S.filtroLote || 'todos';
   let ls = S.Fornadas.map(f => ({f, r:resumoLote(f)}));
@@ -891,6 +1209,7 @@ function telaLotes(){
   ls.sort((a,b) => String(b.f.data).localeCompare(String(a.f.data)) || num(b.f.lote) - num(a.f.lote));
   const chip = (k, t) => `<button class="chip ${filtro === k ? 'on' : ''}" data-flote="${k}">${t}</button>`;
   const semLote = S.Vendas.filter(v => !loteDe(v.lote)).length;
+  const semCusto = S.Fornadas.filter(f => !num(f.lote) || !num(f.custo_total)).length;
   const linha = (t, val, cls = '') => `<tr><td>${t}</td><td class="r num ${cls}">${val}</td></tr>`;
   const card = ({f, r}) => {
     const pv = r.prod ? r.vend / r.prod * 100 : 0, pp = r.prod ? r.perd / r.prod * 100 : 0;
@@ -914,7 +1233,9 @@ function telaLotes(){
     <p class="sub">Cada fornada é um lote, com o custo dos ingredientes do dia em que foi feita</p></div>
     <button class="btn pri" data-novo="Fornadas">${I.mais1} Nova fornada</button></div>
   <div class="filtros"><div class="chips">${chip('todos','Todos')}${chip('abertos','Em venda')}${chip('encerrados','Encerrados')}</div></div>
-  ${semLote ? `<p class="muted" style="font-size:13px;margin:0 0 12px">${semLote} ${semLote === 1 ? 'venda está' : 'vendas estão'} sem lote e não entram nesta conta.</p>` : ''}
+  ${semLote || semCusto ? `<section class="panel" style="margin-bottom:14px"><div class="grupo-top"><div><b>Registros de antes dos lotes</b>
+    <div class="muted" style="font-size:13px">${[semLote ? `${semLote} ${semLote === 1 ? 'venda sem lote' : 'vendas sem lote'}` : '', semCusto ? `${semCusto} ${semCusto === 1 ? 'fornada sem número ou custo' : 'fornadas sem número ou custo'}` : ''].filter(Boolean).join(' · ')}</div></div>
+    <button class="btn pri" data-ligar>Organizar agora</button></div></section>` : ''}
   ${ls.length ? `<div class="grid g2">${ls.map(card).join('')}</div>`
     : `<section class="panel vazio"><b>Nenhum lote ${filtro === 'todos' ? 'ainda' : 'aqui'}</b>Registre uma fornada sempre que produzir. O app grava o custo daquele dia e liga as vendas a ela.</section>`}`;
 }
@@ -933,6 +1254,8 @@ function telaConfig(){
     <div class="campo"><label for="k_meta">Meta de lucro mensal (R$)</label><input id="k_meta" type="number" step="0.01" inputmode="decimal" value="${esc(c.meta_lucro_mensal || '')}"></div></div>
     <div class="campo"><label for="k_msg">Mensagem de cobrança no WhatsApp</label><textarea id="k_msg" placeholder="Oi, {nome}! Passando para lembrar do pagamento: {valor}.">${esc(c.mensagem_cobranca || '')}</textarea>
       <small class="muted">Use {nome} e {valor}; o app troca pelos dados do cliente.</small></div>
+    <div class="campo"><label for="k_oferta">Mensagem para clientes sumidos</label><textarea id="k_oferta" placeholder="Oi, {nome}! Tem palha italiana fresquinha esta semana. Quer que eu separe para você?">${esc(c.mensagem_oferta || '')}</textarea></div>
+    <div class="campo"><label for="k_alerta">Alerta de lote antigo (dias desde a fornada)</label><input id="k_alerta" type="number" inputmode="numeric" value="${esc(c.dias_alerta_lote || '')}" placeholder="7"></div>
     <button class="btn pri" type="submit">Salvar configurações</button></form></section>`;
 }
 
@@ -965,6 +1288,7 @@ function ligar(base){
   v.querySelectorAll('[data-venda]').forEach(b => b.onclick = () => formVenda(b.dataset.venda));
   v.querySelectorAll('[data-fs]').forEach(b => b.onclick = () => { S.filtroStatus = b.dataset.fs; rota(); });
   v.querySelectorAll('[data-flote]').forEach(b => b.onclick = () => { S.filtroLote = b.dataset.flote; rota(); });
+  v.querySelectorAll('[data-ligar]').forEach(b => b.onclick = () => organizarAntigos());
   const fl = v.querySelector('[data-fl]'); if (fl) fl.onchange = () => { S.filtroLocal = fl.value; rota(); };
   v.querySelectorAll('[data-novo]').forEach(b => b.onclick = () => formCadastro(b.dataset.novo));
   v.querySelectorAll('[data-edit]').forEach(b => { b.onclick = () => formCadastro(b.dataset.edit, b.dataset.id);
@@ -989,7 +1313,8 @@ function ligar(base){
       const p = v.querySelector('#k_pct').value;
       const d = { nome_negocio:v.querySelector('#k_nome').value.trim(), regra_reserva:regra, reserva_percentual: p === '' ? '' : num(p) / 100,
         rendimento_padrao: v.querySelector('#k_rend').value ? num(v.querySelector('#k_rend').value) : '',
-        meta_lucro_mensal: v.querySelector('#k_meta').value ? num(v.querySelector('#k_meta').value) : '', mensagem_cobranca:v.querySelector('#k_msg').value.trim() };
+        meta_lucro_mensal: v.querySelector('#k_meta').value ? num(v.querySelector('#k_meta').value) : '', mensagem_cobranca:v.querySelector('#k_msg').value.trim(),
+        mensagem_oferta:v.querySelector('#k_oferta').value.trim(), dias_alerta_lote: v.querySelector('#k_alerta').value ? num(v.querySelector('#k_alerta').value) : '' };
       try{ S.config = await api('setConfig', {data:d}); toast('Configurações salvas'); if (S.config.nome_negocio) $('#brand').firstChild.textContent = S.config.nome_negocio; }
       catch(err){ toast(err.message, true); } btn.disabled = false;
     };
