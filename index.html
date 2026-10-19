@@ -232,6 +232,15 @@ dialog::backdrop{background:rgba(30,18,12,.55)}
 .lote-barra{display:flex;height:8px;border-radius:99px;overflow:hidden;background:var(--surface-2);margin:0 0 12px}
 .lote-barra .v{background:var(--ok)} .lote-barra .p{background:var(--erro)}
 .neg{color:var(--erro)}
+.picker{position:absolute;inset:0;z-index:5;background:var(--surface);padding:20px 20px calc(env(safe-area-inset-bottom,0px) + 18px);display:flex;flex-direction:column;overflow-y:auto;border-radius:inherit}
+.picker h2{margin-bottom:10px}
+.lote-op{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;padding:12px 14px;margin-bottom:8px;border:1px solid var(--line);border-radius:12px;background:var(--bg);cursor:pointer}
+.lote-op b{display:block;font-size:15px}
+.lote-op small{color:var(--muted);font-size:13px}
+.lote-op.on{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent)}
+.lote-campo{display:flex;flex-direction:column;align-items:flex-start;width:100%;text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 12px;min-height:44px;cursor:pointer}
+.lote-campo.pendente{border-color:var(--warn)}
+.lote-campo small{color:var(--warn);font-weight:600;font-size:12px}
 .check{display:flex;gap:10px;align-items:center;font-size:14px;margin:2px 0 14px;cursor:pointer}
 .check input{width:18px;height:18px;accent-color:var(--accent)}
 .alerta{grid-column:1/-1;color:var(--warn);font-weight:600;margin-top:4px}
@@ -516,7 +525,6 @@ function telaVendas(){
 function formVenda(id){
   if (!S.Receitas.length){ toast('Cadastre ao menos uma receita antes de vender.', true); location.hash = '#cad/Receitas'; return; }
   const v = id ? {...S.Vendas.find(x => String(x.id) === String(id))} : {data:hoje(), quantidade:1, receita:S.Receitas.filter(ativo)[0]?.nome || S.Receitas[0].nome, status:'Pendente', forma_pagamento:'Pix'};
-  if (!id) v.lote = loteSugerido(v.receita)?.id || '';
   let valorManual = !!id;
   const opts = (arr, sel) => arr.map(n => `<option ${n === sel ? 'selected' : ''}>${esc(n)}</option>`).join('');
   const m = abrirModal(id ? 'Editar venda' : 'Nova venda', `
@@ -528,7 +536,7 @@ function formVenda(id){
     <div class="duas"><div class="campo"><label for="v_qtd">Quantidade</label><div class="stepper"><button type="button" data-q="-1" aria-label="Menos">−</button><input id="v_qtd" type="number" min="1" inputmode="numeric" value="${num(v.quantidade) || 1}"><button type="button" data-q="1" aria-label="Mais">+</button></div></div>
       <div class="campo"><label for="v_valor">Valor (R$)</label><input id="v_valor" type="number" step="0.01" inputmode="decimal" value="${v.valor ?? ''}"></div></div>
     <div class="duas"><div class="campo"><label for="v_local">Local</label><select id="v_local"><option value="">—</option>${opts(S.Locais.map(l => l.nome), v.local)}</select></div>
-      <div class="campo"><label for="v_lote">Lote</label><select id="v_lote"></select></div></div>
+      <div class="campo"><label for="v_lotebtn">Lote</label><button type="button" class="lote-campo" id="v_lotebtn"></button><input type="hidden" id="v_lote"></div></div>
     <div class="campo" id="v_rendbox"><label for="v_rend">Rendimento da fornada</label><input id="v_rend" type="number" inputmode="numeric" placeholder="Padrão" value="${v.rendimento || ''}"></div>
     <div class="campo"><label>Pagamento</label><div class="seg" id="v_status"><button type="button" data-st="Pendente">Pendente</button><button type="button" data-st="Pago">Pago</button></div></div>
     <div class="duas" id="v_pago"><div class="campo"><label for="v_forma">Forma</label><select id="v_forma">${opts(['Pix','Dinheiro','Cartão'], v.forma_pagamento)}</select></div>
@@ -556,14 +564,53 @@ function formVenda(id){
     const rest = resumoLote(f).rest + (id && String(v.lote) === String(f.id) ? num(v.quantidade) : 0);
     return num(q('#v_qtd').value) > rest ? `<div class="alerta">${nomeLote(f)} tem só ${rest} ${rest === 1 ? 'unidade restante' : 'unidades restantes'}.</div>` : '';
   };
-  const desenharLotes = sel => {
-    const ls = lotesDe(v.receita);
-    q('#v_lote').innerHTML = ls.map(f => { const r = resumoLote(f);
-      return `<option value="${esc(f.id)}" ${String(f.id) === String(sel) ? 'selected' : ''}>${nomeLote(f)} · ${dataBR(f.data)} · ${r.rest} ${r.rest === 1 ? 'resta' : 'restam'}</option>`; }).join('')
-      + `<option value="" ${sel ? '' : 'selected'}>Sem lote (preço atual)</option>`;
-    q('#v_rendbox').style.display = q('#v_lote').value ? 'none' : '';
+  /* ---- Lote: escolha em janela própria ---- */
+  let loteOk = !!id;
+  const lotesAbertos = () => lotesDe(v.receita).filter(f => resumoLote(f).rest > 0);
+  const desenharLoteBtn = () => {
+    const f = loteSel(), b = q('#v_lotebtn');
+    let t = 'Sem lote (preço atual)';
+    if (f){ const rest = resumoLote(f).rest + (id && String(v.lote) === String(f.id) ? num(v.quantidade) : 0); t = `${nomeLote(f)} · ${dataBR(f.data)} · ${rest} ${rest === 1 ? 'resta' : 'restam'}`; }
+    b.innerHTML = esc(t) + (loteOk ? '' : '<small>Toque para confirmar o lote</small>');
+    b.classList.toggle('pendente', !loteOk);
+    q('#v_rendbox').style.display = f ? 'none' : '';
   };
-  desenharLotes(v.lote);
+  const setLote = (lid, confirmado) => { q('#v_lote').value = lid || ''; loteOk = confirmado; desenharLoteBtn(); prev(); };
+  const iniciarLote = () => {
+    const ab = lotesAbertos();
+    q('#v_lote').value = ab[0]?.id || loteSugerido(v.receita)?.id || '';
+    loteOk = ab.length < 2;        // com 2 ou mais lotes em venda, pergunta de qual saiu
+    desenharLoteBtn();
+  };
+  const abrirPicker = depois => {
+    const sel = q('#v_lote').value; let todos = false;
+    const div = document.createElement('div'); div.className = 'picker'; div.setAttribute('role', 'dialog'); div.setAttribute('aria-label', 'Escolher lote');
+    m.appendChild(div);
+    const desenhar = () => {
+      const tudo = lotesDe(v.receita);
+      const ls = tudo.filter(f => todos || resumoLote(f).rest > 0 || String(f.id) === String(sel));
+      const fechados = tudo.length - ls.length;
+      div.innerHTML = `<h2>De qual lote saiu esta venda?</h2>
+        <p class="muted" style="margin:0 0 14px;font-size:14px">${esc(v.receita)} · ${num(q('#v_qtd').value)} ${num(q('#v_qtd').value) === 1 ? 'unidade' : 'unidades'}</p>
+        ${ls.map((f, i) => { const r = resumoLote(f);
+          const tag = ls.length > 1 ? (i === 0 ? '<span class="badge b-ok">mais recente</span>' : i === ls.length - 1 ? '<span class="badge b-warn">mais antigo</span>' : '') : '';
+          return `<button type="button" class="lote-op ${String(f.id) === String(sel) && loteOk ? 'on' : ''}" data-pl="${esc(f.id)}"><span><b>${nomeLote(f)} · feito em ${dataBR(f.data)}</b>
+            <small>${r.rest} ${r.rest === 1 ? 'unidade restante' : 'unidades restantes'} · custo ${brl(r.cu)} por unidade</small></span>${tag}</button>`; }).join('')}
+        ${!todos && fechados ? `<button type="button" class="btn" data-todos style="width:100%;margin-bottom:8px">Mostrar ${fechados === 1 ? '1 lote encerrado' : fechados + ' lotes encerrados'}</button>` : ''}
+        <button type="button" class="lote-op ${!sel && loteOk ? 'on' : ''}" data-pl=""><span><b>Sem lote</b><small>Usa o preço atual dos ingredientes</small></span></button>
+        <div style="margin-top:auto;padding-top:12px"><button type="button" class="btn" data-pvoltar style="width:100%">Voltar</button></div>`;
+    };
+    desenhar();
+    div.onclick = e => {
+      if (e.target.closest('[data-todos]')){ todos = true; desenhar(); return; }
+      if (e.target.closest('[data-pvoltar]')){ div.remove(); return; }
+      const b = e.target.closest('[data-pl]'); if (!b) return;
+      setLote(b.dataset.pl, true); div.remove(); if (depois) depois();
+    };
+  };
+  if (id) q('#v_lote').value = v.lote || '';
+  if (id) desenharLoteBtn(); else iniciarLote();
+  q('#v_lotebtn').onclick = () => abrirPicker();
   const auto = () => { if (valorManual) return; const a = valorAuto(v.receita, num(q('#v_qtd').value)); if (a){ q('#v_valor').value = a.valor; q('#v_combo').value = a.combo; } prev(); };
   const desenharPrecos = () => {
     const ps = precosDe(v.receita);
@@ -574,8 +621,7 @@ function formVenda(id){
   desenharPrecos(); desenharStatus(); if (!id) auto(); else prev();
 
   q('#v_rec').onclick = e => { const b = e.target.closest('[data-rec]'); if (!b) return; v.receita = b.dataset.rec;
-    q('#v_rec').querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === b)); desenharPrecos(); desenharLotes(loteSugerido(v.receita)?.id || ''); valorManual = false; auto(); };
-  q('#v_lote').onchange = () => { q('#v_rendbox').style.display = q('#v_lote').value ? 'none' : ''; prev(); };
+    q('#v_rec').querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === b)); desenharPrecos(); iniciarLote(); valorManual = false; auto(); };
   q('#v_precos').onclick = e => { const b = e.target.closest('[data-p]'); if (!b) return; const p = S.Precos.find(x => String(x.id) === b.dataset.p);
     q('#v_qtd').value = num(p.quantidade); q('#v_valor').value = num(p.preco); q('#v_combo').value = p.descricao; valorManual = false; prev(); };
   m.querySelectorAll('[data-q]').forEach(b => b.onclick = () => { q('#v_qtd').value = Math.max(1, num(q('#v_qtd').value) + num(b.dataset.q)); valorManual = false; auto(); });
@@ -590,6 +636,7 @@ function formVenda(id){
     if (!d.cliente) throw new Error('Informe o nome do cliente.');
     if (!(d.quantidade > 0)) throw new Error('Informe a quantidade.');
     if (!(d.valor >= 0)) throw new Error('Informe o valor.');
+    if (!loteOk){ abrirPicker(() => m.querySelector('[data-ok]').click()); const e = new Error('Escolha o lote'); e.silencioso = true; throw e; }
     Object.assign(d, calcVenda(d));
     await salvar('Vendas', d, id);
     if (!S.Clientes.some(c => c.nome.toLowerCase() === d.cliente.toLowerCase())){
@@ -900,7 +947,7 @@ function abrirModal(titulo, corpo, {salvar:txt = 'Salvar', excluir:podeExcluir =
   const ok = m.querySelector('[data-ok]');
   const rodar = async (fn, botao) => {
     try{ botao.disabled = true; const t = botao.textContent; botao.textContent = 'Salvando…'; await fn(); m.close(); rota(); botao.textContent = t; }
-    catch(e){ toast(e.message, true); botao.disabled = false; botao.textContent = botao === ok ? txt : 'Excluir'; }
+    catch(e){ if (!e.silencioso) toast(e.message, true); botao.disabled = false; botao.textContent = botao === ok ? txt : 'Excluir'; }
   };
   ok.onclick = () => m.onSalvar && rodar(m.onSalvar, ok);
   m.querySelector('[data-cancel]').onclick = () => m.close();
