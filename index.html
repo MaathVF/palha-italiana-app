@@ -157,6 +157,7 @@ tr:last-child td{border-bottom:0}
 .btn[disabled]{opacity:.55;pointer-events:none}
 .fab{position:fixed;right:18px;bottom:calc(env(safe-area-inset-bottom,0px) + 82px);z-index:21;width:58px;height:58px;border-radius:18px;border:0;background:var(--accent);color:var(--accent-text);box-shadow:0 10px 24px -8px rgba(58,34,23,.5);cursor:pointer;display:grid;place-items:center}
 .fab svg{width:26px;height:26px}
+.fab[hidden]{display:none}
 @media (min-width:900px){.fab{display:none}}
 .so-desk{display:none}
 @media (min-width:900px){.so-desk{display:inline-flex}}
@@ -265,6 +266,33 @@ td.num{white-space:nowrap}
 .hb-t div{height:100%;background:var(--accent);border-radius:99px}
 .hb b{font-weight:600;font-size:13.5px;white-space:nowrap}
 .grande{font:700 22px/1.2 var(--font-d);margin:2px 0}
+/* Ajuda */
+.ajuda-btn{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--line);background:var(--surface);color:var(--muted);
+  font:700 15px/1 var(--font-b);text-decoration:none;vertical-align:middle;margin-left:6px;position:relative;top:-3px}
+.ajuda-btn:hover{color:var(--text);border-color:var(--accent)}
+.kb-log{display:flex;flex-direction:column;gap:10px;max-height:min(60vh,520px);overflow-y:auto;padding:4px 2px 8px}
+.kb-msg{padding:12px 14px;border-radius:14px;font-size:14.5px;max-width:92%}
+.kb-msg.eu{align-self:flex-end;background:var(--choco);color:#F6EBDD;border-bottom-right-radius:4px}
+@media (prefers-color-scheme: dark){.kb-msg.eu{background:var(--accent);color:#24160F}}
+.kb-msg.bot{align-self:flex-start;background:var(--surface-2);border-bottom-left-radius:4px}
+.kb-msg mark{background:color-mix(in srgb,var(--accent) 35%,transparent);color:inherit;border-radius:3px;padding:0 2px}
+.kb-links{display:flex;flex-direction:column;gap:4px}
+.kb-links a{color:var(--text);font-weight:600;font-size:14px}
+.kb-form{display:flex;gap:8px;margin-top:8px}
+.kb-form input{flex:1;min-width:0;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 14px;min-height:46px}
+.artigo{max-width:760px;line-height:1.65}
+.artigo h3{font:700 17px/1.3 var(--font-d);margin:22px 0 8px}
+.artigo p{margin:0 0 12px}
+.artigo ul,.artigo ol{margin:0 0 12px;padding-left:22px}
+.artigo li{margin-bottom:6px}
+.artigo a{color:var(--text);font-weight:600}
+.artigo>*:first-child{margin-top:0}
+.badge{white-space:nowrap}
+.ing-lista{display:flex;flex-direction:column;gap:8px}
+.ing-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.ing-row select{width:100%;min-width:0;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:8px 10px;min-height:40px;font-size:13.5px}
+.ing-nome b{display:block;font-size:14px} .ing-nome small{color:var(--muted);font-size:12.5px}
+@media (max-width:520px){.ing-row{grid-template-columns:1fr}}
 .check{display:flex;gap:10px;align-items:center;font-size:14px;margin:2px 0 14px;cursor:pointer}
 .check input{width:18px;height:18px;accent-color:var(--accent)}
 .alerta{grid-column:1/-1;color:var(--warn);font-weight:600;margin-top:4px}
@@ -298,6 +326,7 @@ const I = {
   receber:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
   repasses:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h13M13 6l6 6-6 6"/></svg>',
   mais:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>',
+  ajuda:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.2a2.6 2.6 0 0 1 5 .9c0 1.7-2.5 2.3-2.5 3.9"/><path d="M12 17.2h.01"/></svg>',
   mais1:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
   esq:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 6-6 6 6 6"/></svg>',
   dir:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
@@ -309,6 +338,7 @@ const ROTAS = [
   {id:'receber', nome:'A receber', ico:I.receber},
   {id:'repasses',nome:'Repasses',  ico:I.repasses},
   {id:'mais',    nome:'Mais',      ico:I.mais},
+  {id:'ajuda',   nome:'Ajuda',     ico:I.ajuda, so:'side'},
 ];
 
 /* ============ ESTADO ============ */
@@ -359,18 +389,18 @@ function api(action, params = {}){
 async function carregar(){
   const d = await api('getAll');
   S.config = d.config || {};
-  TABELAS.forEach(t => S[t] = d[t] || []);
+  TABELAS.forEach(t => S[t] = d[t] || []); EST = null;
   $('#sync').textContent = 'Atualizado às ' + new Date().toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
   if (S.config.nome_negocio) $('#brand').firstChild.textContent = S.config.nome_negocio;
 }
 async function salvar(tabela, obj, id){
-  const r = id ? await api('update', {sheet:tabela, id, data:obj}) : await api('add', {sheet:tabela, data:obj});
+  const r = id ? await api('update', {sheet:tabela, id, data:obj}) : await api('add', {sheet:tabela, data:obj}); EST = null;
   if (id){ const i = S[tabela].findIndex(x => String(x.id) === String(id)); if (i >= 0) S[tabela][i] = {...S[tabela][i], ...obj}; }
   else S[tabela].push(r);
   return r;
 }
 async function excluir(tabela, id){
-  await api('delete', {sheet:tabela, id});
+  await api('delete', {sheet:tabela, id}); EST = null;
   S[tabela] = S[tabela].filter(x => String(x.id) !== String(id));
 }
 
@@ -378,7 +408,7 @@ async function excluir(tabela, id){
 const ingrediente = nome => S.Ingredientes.find(i => i.nome === nome);
 const receita = nome => S.Receitas.find(r => r.nome === nome);
 const local = nome => S.Locais.find(l => l.nome === nome);
-const custoIng = i => i && num(i.qtd_embalagem) ? num(i.preco_embalagem) / num(i.qtd_embalagem) : 0;
+const custoIng = i => { if (!i) return 0; const e = estoqueDe(i.nome); return e.emUso ? e.emUso.pu : precoCadastro(i); };
 const itensDe = rec => S.ReceitaItens.filter(x => x.receita === rec);
 const custoForma = rec => itensDe(rec).reduce((s, x) => s + num(x.quantidade) * custoIng(ingrediente(x.ingrediente)), 0);
 const adicional = aplic => S.CustosAdicionais.filter(c => ativo(c) && c.aplicacao === aplic && num(c.qtd_pacote))
@@ -390,9 +420,16 @@ const custoUnit = (rec, rend) => { const r = num(rend) || rendPadrao(rec); retur
 const loteDe = id => id ? S.Fornadas.find(f => String(f.id) === String(id)) : null;
 const nomeLote = f => f ? 'Lote ' + (num(f.lote) || '?') : '';
 const proximoLote = () => S.Fornadas.reduce((m, f) => Math.max(m, num(f.lote)), 0) + 1;
-function custoLote(rec, rend){
-  const ci = custoForma(rec), ca = adicional('Por fornada'), r = num(rend) || rendPadrao(rec);
-  return { custo_ingredientes:r2(ci), custo_adicional:r2(ca), custo_total:r2(ci + ca), custo_unitario: r ? Math.round((ci + ca) / r * 10000) / 10000 : 0 };
+function custoLote(rec, rend, escolha){
+  escolha = escolha || escolhasPadrao(rec);   // {ingrediente: id da compra} ; '' = último preço do cadastro
+  let ci = 0; const usadas = {};
+  itensDe(rec).forEach(x => {
+    const q = num(x.quantidade), it = compraNoEstoque(x.ingrediente, escolha[x.ingrediente]);
+    const p = it ? it.pu : precoCadastro(ingrediente(x.ingrediente));
+    ci += q * p; usadas[x.ingrediente] = {c: it ? String(it.c.id) : '', q, p:Math.round(p * 1e6) / 1e6};
+  });
+  const ca = adicional('Por fornada'), r = num(rend) || rendPadrao(rec);
+  return { custo_ingredientes:r2(ci), custo_adicional:r2(ca), custo_total:r2(ci + ca), custo_unitario: r ? Math.round((ci + ca) / r * 10000) / 10000 : 0, compras_usadas:JSON.stringify(usadas) };
 }
 function resumoLote(f){
   const vs = S.Vendas.filter(v => String(v.lote) === String(f.id));
@@ -426,8 +463,8 @@ const vendasMes = () => S.Vendas.filter(v => String(v.data).slice(0,7) === S.mes
 
 /* ============ NAVEGAÇÃO ============ */
 function montarNav(){
-  const html = ROTAS.map(r => `<a href="#${r.id}" data-r="${r.id}">${r.ico}<span>${r.nome}</span></a>`).join('');
-  $('#navSide').innerHTML = html; $('#navTab').innerHTML = html;
+  const html = rs => rs.map(r => `<a href="#${r.id}" data-r="${r.id}">${r.ico}<span>${r.nome}</span></a>`).join('');
+  $('#navSide').innerHTML = html(ROTAS); $('#navTab').innerHTML = html(ROTAS.filter(r => r.so !== 'side'));
   $('#fab').innerHTML = I.mais1;
   $('#fab').onclick = () => formVenda();
 }
@@ -435,8 +472,9 @@ function rota(){
   const h = (location.hash.slice(1) || 'inicio').split('/');
   const base = h[0];
   document.querySelectorAll('[data-r]').forEach(a => {
-    const r = a.dataset.r; a.classList.toggle('on', r === base || (r === 'mais' && ['cad','itens','config','lotes'].includes(base)));
+    const r = a.dataset.r; a.classList.toggle('on', r === base || (r === 'mais' && ['cad','itens','config','lotes','estoque'].includes(base)));
   });
+  document.querySelectorAll('#navTab [data-r="mais"]').forEach(a => { if (base === 'ajuda') a.classList.add('on'); });
   $('#fab').hidden = !['inicio','vendas'].includes(base);
   const v = $('#view');
   try{
@@ -449,9 +487,12 @@ function rota(){
     else if (base === 'itens') v.innerHTML = telaItens(decodeURIComponent(h[1]));
     else if (base === 'config') v.innerHTML = telaConfig();
     else if (base === 'lotes') v.innerHTML = telaLotes();
+    else if (base === 'estoque') v.innerHTML = telaEstoque(decodeURIComponent(h[1] || ''));
+    else if (base === 'ajuda') v.innerHTML = telaAjuda(h[1] ? decodeURIComponent(h[1]) : '');
     else v.innerHTML = telaInicio();
   }catch(e){ console.error(e); v.innerHTML = `<div class="panel vazio"><b>Algo deu errado nesta tela</b>${esc(e.message)}</div>`; }
   ligar(base);
+  if (base === 'ajuda') ligarAjuda(v); else botaoAjuda(base, h);
 }
 function seletorMes(){ return `<div class="mes"><button data-mes="-1" aria-label="Mês anterior">${I.esq}</button><span>${nomeMes(S.mes)}</span><button data-mes="1" aria-label="Próximo mês">${I.dir}</button></div>`; }
 
@@ -710,7 +751,7 @@ function pCustoLotes(){
 function pPesoIngredientes(){
   const rs = S.Receitas.filter(ativo).filter(r => itensDe(r.nome).length && custoForma(r.nome) > 0);
   if (!rs.length) return '';
-  return `<section class="panel"><h2>Peso de cada ingrediente</h2>${subP('Participação no custo da forma, com os preços de hoje')}
+  return `<section class="panel"><h2>Peso de cada ingrediente</h2>${subP('Participação no custo da forma, com as compras em uso')}
     ${rs.map(r => { const tot = custoForma(r.nome);
       const ls = itensDe(r.nome).map(x => ({t:x.ingrediente, v:num(x.quantidade) * custoIng(ingrediente(x.ingrediente))})).sort((a,b) => b.v - a.v);
       return `<div style="margin-bottom:12px"><div class="grupo-top" style="margin-bottom:4px"><b style="font-size:15px">${esc(r.nome)}</b><span class="muted num" style="font-size:13px">forma ${brl(tot)}</span></div>
@@ -963,6 +1004,717 @@ function telaRepasses(){
   <section class="panel" style="margin-top:14px"><h2>Histórico</h2>${hist.length ? `<div class="lista">${hist.map(r => `<button class="item" data-edit="Repasses" data-id="${esc(r.id)}"><div class="t"><b>${esc(r.local)}</b><small>${dataBR(r.data)}${r.observacao ? ' · ' + esc(r.observacao) : ''}</small></div><div class="v"><b class="num">${brl(r.valor)}</b></div></button>`).join('')}</div>` : `<p class="muted" style="margin:0">Nenhum repasse registrado.</p>`}</section>`;
 }
 
+/* ============ BASE DE CONHECIMENTO ============
+   Cada artigo: id, g (grupo), t (título), r (resumo), tags (palavras extras para a busca),
+   tela (link da tela no app), rel (artigos relacionados), c (conteúdo em HTML; cada <h3> vira um trecho da busca) */
+const KB_GRUPOS = ['Primeiros passos', 'Telas', 'Conceitos', 'Como fazer', 'Problemas comuns'];
+const KB = [
+/* ---------------- PRIMEIROS PASSOS ---------------- */
+{id:'primeiros-passos', g:'Primeiros passos', t:'Comece por aqui', r:'A ordem certa dos cadastros e a rotina do dia a dia.',
+ tags:'inicio comecar configurar cadastro ordem passo tutorial', tela:'#mais', rel:['como-calcula','tela-ingredientes','registrar-venda'], c:`
+<p>O app calcula sozinho o custo, o repasse, a reserva e o lucro de cada venda. Para isso, ele precisa de alguns cadastros feitos uma única vez.</p>
+<h3>Ordem dos cadastros</h3>
+<ol>
+<li><b>Ingredientes</b>: nome, tamanho e preço de cada embalagem (ex.: leite condensado 395 g por R$ 6,99).</li>
+<li><b>Receitas</b>: nome e quantas unidades rende uma forma (ex.: Tradicional, 16 unidades).</li>
+<li><b>Ingredientes de cada receita</b>: quanto de cada ingrediente vai em uma forma.</li>
+<li><b>Preços e combos</b>: o preço avulso e os combos (ex.: Avulso R$ 7; Combo 3 por R$ 18).</li>
+<li><b>Locais de venda</b>: onde você vende e o repasse de cada um (ex.: Núcleo 20%, Detran 0%).</li>
+<li><b>Configurações</b>: regra da reserva da empresa e meta de lucro do mês.</li>
+</ol>
+<p>Enquanto faltar algum cadastro, o Painel mostra a lista “Primeiros passos” com atalhos para cada um.</p>
+<h3>Rotina do dia a dia</h3>
+<ul>
+<li>Fez uma forma? Registre uma <a href="#ajuda/registrar-fornada">fornada</a>. Ela vira um lote.</li>
+<li>Vendeu? Registre a <a href="#ajuda/registrar-venda">venda</a> e escolha de qual lote saiu.</li>
+<li>Recebeu? Dê <a href="#ajuda/baixa-pagamento">baixa no pagamento</a> em A receber.</li>
+<li>Foi ao mercado? Registre a <a href="#ajuda/registrar-compra">compra</a>. O preço do ingrediente é atualizado.</li>
+<li>Repassou ao Núcleo? Registre em <a href="#ajuda/tela-repasses">Repasses</a>.</li>
+</ul>`},
+
+{id:'como-calcula', g:'Primeiros passos', t:'Como o app calcula cada venda', r:'De onde vêm o custo, o repasse, a reserva e o lucro.',
+ tags:'calculo conta formula entender numeros divisao', rel:['custo-preparo','repasse','reserva','lucro-disponivel'], c:`
+<p>Ao salvar uma venda, o app divide o valor em quatro partes e grava cada uma junto com a venda:</p>
+<p><b>Valor da venda − custo de preparo − repasse − reserva = lucro disponível</b></p>
+<h3>Exemplo: combo 3 por R$ 18 no Núcleo</h3>
+<p>Com custo de R$ 2,20 por unidade e repasse de 20%:</p>
+<ul>
+<li>Custo de preparo: 3 × R$ 2,20 = <b>R$ 6,60</b></li>
+<li>Repasse ao Núcleo: 20% de R$ 18 = <b>R$ 3,60</b></li>
+<li>Reserva da empresa (igual ao custo): <b>R$ 6,60</b></li>
+<li>Lucro disponível: 18 − 6,60 − 3,60 − 6,60 = <b>R$ 1,20</b></li>
+</ul>
+<h3>Exemplo: 1 unidade avulsa por R$ 7 no Detran</h3>
+<ul>
+<li>Custo: R$ 2,20 · Repasse: R$ 0 · Reserva: R$ 2,20</li>
+<li>Lucro disponível: <b>R$ 2,60</b></li>
+</ul>
+<h3>Os valores ficam gravados</h3>
+<p>O custo, o repasse, a reserva e o lucro são gravados no momento da venda. Se o preço de um ingrediente subir depois, as vendas antigas não mudam. Elas só são recalculadas quando você edita a venda ou o lote dela.</p>`},
+
+/* ---------------- TELAS ---------------- */
+{id:'tela-painel', g:'Telas', t:'Painel', r:'O que significa cada indicador e gráfico do Painel.',
+ tags:'dashboard inicio indicador grafico resumo kpi numeros', tela:'#inicio', rel:['margem-ticket','caixa-empresa','tela-lotes'], c:`
+<p>O Painel mostra o resultado do mês escolhido no seletor do topo (setas ‹ ›). Alguns blocos só aparecem quando já existem dados para eles.</p>
+<h3>Cartões principais</h3>
+<ul>
+<li><b>Vendido</b>: soma das vendas do mês, pagas ou não.</li>
+<li><b>Lucro disponível</b>: o que sobra depois de custo, repasse e reserva. Veja <a href="#ajuda/lucro-disponivel">Lucro disponível</a>.</li>
+<li><b>Margem de lucro</b>: lucro ÷ vendido. Mostra quantos centavos de cada real vendido viram lucro.</li>
+<li><b>Unidades vendidas</b> e <b>Ticket médio</b> (valor médio por venda), com o preço médio por unidade logo abaixo.</li>
+<li><b>A receber</b>: tudo o que está pendente, de todos os meses.</li>
+</ul>
+<p>Embaixo de cada número aparece a comparação com o mês anterior: ▲ verde quando melhorou e ▼ vermelho quando piorou.</p>
+<h3>Evolução mês a mês</h3>
+<p>Barras com o vendido e o lucro dos últimos 12 meses. O mês escolhido fica em destaque. No computador, pare o mouse sobre uma barra para ver o valor exato.</p>
+<h3>Para onde vai cada real e Caixa da empresa</h3>
+<p>A barra colorida divide o vendido em reposição dos ingredientes, repasses, reserva e lucro. O <a href="#ajuda/caixa-empresa">Caixa da empresa</a> mostra quanto dinheiro existe de verdade para repor e investir.</p>
+<h3>Meta do mês e projeção</h3>
+<p>Mostra quanto do lucro da meta já foi alcançado e quantas unidades faltam. No mês atual, calcula como o mês deve fechar mantendo o ritmo de vendas até hoje. A meta é definida em <a href="#ajuda/tela-config">Configurações</a>.</p>
+<h3>Por receita, por local e avulso x combo</h3>
+<p><b>Por receita</b> e <b>Por local</b> mostram unidades, vendido e lucro por unidade, já descontado o repasse. <b>Avulso x combo</b> compara o preço médio real com o preço avulso e mostra quanto deixou de entrar por causa dos descontos.</p>
+<h3>Dias da semana e Recebimentos</h3>
+<p><b>Dias da semana</b> soma as unidades vendidas nos últimos 90 dias em cada dia. <b>Recebimentos</b> mostra o prazo médio entre a venda e o pagamento, quantas foram pagas no mesmo dia e a divisão entre Pix, dinheiro e cartão.</p>
+<h3>Cobrança e clientes</h3>
+<p><b>A receber por atraso</b> separa os pendentes em até 7 dias, 8 a 30 dias e mais de 30 dias. <b>Melhores clientes</b> lista quem mais comprou nos últimos 90 dias. <b>Clientes sumidos</b> mostra quem comprou antes e está há mais de 30 dias sem comprar, com o botão para chamar no WhatsApp.</p>
+<h3>Produção e lotes</h3>
+<p><b>Estoque agora</b> mostra as unidades que sobram em cada lote e há quantos dias foram feitas, com alerta para lote antigo. <b>Produção</b> mostra fornadas do mês, custo médio por unidade, taxa de perda, rendimento médio por forma e giro (quantos dias um lote leva para acabar). O gráfico <b>Custo por unidade em cada lote</b> mostra quando os ingredientes encareceram.</p>
+<h3>Compras e custos</h3>
+<p><b>Peso de cada ingrediente</b> mostra quanto cada um representa no custo da forma. <b>Gastos do mês</b> soma as compras por mercado e por item. <b>Retorno do investimento</b> mostra quando o lucro pagou as compras marcadas como “Investimento”.</p>`},
+
+{id:'tela-vendas', g:'Telas', t:'Vendas', r:'Lista de vendas do mês e cada campo do formulário de venda.',
+ tags:'lista filtro formulario campos nova venda pedido', tela:'#vendas', rel:['registrar-venda','registrar-combo','trocar-lote'], c:`
+<p>Mostra as vendas do mês escolhido, da mais recente para a mais antiga. Use os filtros <b>Todas</b>, <b>Pendentes</b> e <b>Pagas</b> e o seletor de local. Toque numa venda para editar ou excluir.</p>
+<h3>Campos do formulário de venda</h3>
+<ul>
+<li><b>Data</b>: o dia da venda. É ela que decide em qual mês a venda conta.</li>
+<li><b>Cliente</b>: digite o nome; o app sugere os já cadastrados. Cliente novo é cadastrado sozinho.</li>
+<li><b>Receita</b>: o sabor vendido.</li>
+<li><b>Preço / combo</b>: toque num preço para preencher a quantidade e o valor de uma vez.</li>
+<li><b>Quantidade</b>: use − e +. O valor é recalculado sozinho, combinando os combos (ex.: 4 unidades = Combo 3 + Avulso).</li>
+<li><b>Valor (R$)</b>: se você digitar outro valor, o app respeita o que você digitou.</li>
+<li><b>Local</b>: define o repasse. Se o cliente tem local habitual, ele é preenchido sozinho.</li>
+<li><b>Lote</b>: de qual fornada saiu o produto. Veja <a href="#ajuda/trocar-lote">Escolher ou trocar o lote</a>.</li>
+<li><b>Rendimento da fornada</b>: só aparece quando a venda está sem lote. Usa o rendimento padrão se ficar vazio.</li>
+<li><b>Pagamento</b>: Pendente ou Pago. Quando é Pago, aparecem a <b>forma</b> (Pix, dinheiro, cartão) e a <b>data do pagamento</b>.</li>
+<li><b>Observação</b>: qualquer anotação.</li>
+</ul>
+<h3>Prévia do resultado</h3>
+<p>No fim do formulário aparecem o custo de preparo, o repasse, a reserva e o lucro disponível daquela venda, atualizados enquanto você preenche.</p>`},
+
+{id:'tela-receber', g:'Telas', t:'A receber', r:'Vendas pendentes agrupadas por cliente, com baixa e cobrança.',
+ tags:'pendente fiado devendo cobrar pagamento cliente', tela:'#receber', rel:['baixa-pagamento','cobrar-whatsapp','tela-clientes'], c:`
+<p>Reúne todas as vendas pendentes, <b>de todos os meses</b>, agrupadas por cliente. Quem deve mais aparece primeiro.</p>
+<h3>Botões de cada cliente</h3>
+<ul>
+<li><b>Recebi no Pix</b> e <b>Recebi em dinheiro</b>: marcam como pagas <b>todas</b> as vendas pendentes daquele cliente, com a data de hoje.</li>
+<li><b>Cobrar</b>: abre o WhatsApp com a mensagem de cobrança pronta. Só aparece se o cliente tiver telefone cadastrado; senão aparece <b>Adicionar telefone</b>.</li>
+</ul>
+<p>Para dar baixa em só uma das vendas, veja <a href="#ajuda/baixa-pagamento">Dar baixa num pagamento</a>.</p>`},
+
+{id:'tela-repasses', g:'Telas', t:'Repasses', r:'Quanto deve ser repassado a cada local e o histórico dos repasses feitos.',
+ tags:'nucleo comissao porcentagem pagar local saldo', tela:'#repasses', rel:['repasse','tela-locais'], c:`
+<p>Mostra um cartão para cada local com repasse maior que zero (ex.: Núcleo com 20%).</p>
+<h3>Linhas do cartão</h3>
+<ul>
+<li><b>Repasse do mês</b>: soma do repasse das vendas daquele local no mês escolhido.</li>
+<li><b>Total devido, todos os meses</b>: tudo o que já foi gerado de repasse.</li>
+<li><b>Já repassado</b>: soma dos repasses registrados.</li>
+<li><b>Saldo a repassar</b>: devido − já repassado.</li>
+</ul>
+<h3>Registrar um repasse</h3>
+<p>Toque em <b>Registrar repasse</b>. O valor já vem com o saldo em aberto; ajuste se repassou outro valor. O repasse entra no <b>Histórico</b>, onde dá para editar ou excluir.</p>
+<p>O repasse é calculado sobre o <b>valor vendido</b>, mesmo que a venda ainda não tenha sido paga.</p>`},
+
+{id:'tela-lotes', g:'Telas', t:'Lotes', r:'Custo, vendas, perdas e lucro de cada fornada.',
+ tags:'fornada estoque producao lote resultado restam', tela:'#lotes', rel:['lote','registrar-fornada','prob-lote-zerado'], c:`
+<p>Cada fornada registrada vira um lote numerado (Lote 1, Lote 2…). Use os filtros <b>Todos</b>, <b>Em venda</b> e <b>Encerrados</b>.</p>
+<h3>O que cada cartão mostra</h3>
+<ul>
+<li>Data, custo do lote e custo por unidade.</li>
+<li><b>Produzidas</b>, <b>Vendidas</b>, <b>Perdidas</b> e <b>Restam</b>, com uma barra de progresso.</li>
+<li>A conta do lote: vendido − custo das unidades vendidas − repasse − reserva − perdas = <b>lucro do lote</b>.</li>
+<li>Quanto custaram as unidades que ainda estão em estoque.</li>
+<li>As compras usadas de cada ingrediente, com a data de cada compra.</li>
+</ul>
+<h3>Selo Em venda ou Encerrado</h3>
+<p>O lote fica <b>Em venda</b> enquanto restam unidades. Quando vendidas + perdidas chegam ao total produzido, ele vira <b>Encerrado</b>.</p>
+<h3>Lucro do lote negativo no começo</h3>
+<p>É normal o lucro começar negativo quando há perdas e ainda poucas vendas. Ele cresce a cada venda ligada ao lote. Veja <a href="#ajuda/prob-lucro-negativo">Lucro negativo</a>.</p>
+<h3>Registros de antes dos lotes</h3>
+<p>Se aparecer o aviso “Registros de antes dos lotes”, use o botão <b>Organizar agora</b>. Veja <a href="#ajuda/organizar-antigos">Organizar registros antigos</a>.</p>`},
+
+{id:'tela-ingredientes', g:'Telas', t:'Ingredientes', r:'Cadastro dos ingredientes e o preço que entra nas fornadas.',
+ tags:'insumo materia prima produto embalagem preco estoque', tela:'#cad/Ingredientes', rel:['estoque-ingredientes','tela-receitas','registrar-compra'], c:`
+<p>O custo das receitas é calculado a partir destes ingredientes. Cada linha mostra o preço da <b>compra em uso</b>, quanto resta dela e quantas compras estão na fila.</p>
+<h3>Campos</h3>
+<ul>
+<li><b>Nome</b>: como o ingrediente aparece nas receitas e nas compras. Use sempre o mesmo nome.</li>
+<li><b>Marca</b>: opcional.</li>
+<li><b>Unidade de medida</b>: g, ml ou un.</li>
+<li><b>Tamanho da embalagem</b>: quanto vem em uma embalagem, na unidade escolhida (ex.: 395 para uma lata de 395 g).</li>
+<li><b>Último preço pago pela embalagem</b>: é atualizado sozinho a cada compra. Só entra no custo quando não há nenhuma compra em estoque.</li>
+<li><b>Mercado</b>: onde costuma comprar.</li>
+<li><b>Ativo</b>: marque “Não” para esconder sem apagar.</li>
+</ul>
+<h3>Botão Estoque</h3>
+<p>Abre as compras daquele ingrediente: a que está em uso, as que estão na fila e as que já acabaram. Veja <a href="#ajuda/estoque-ingredientes">Estoque de ingredientes</a>.</p>`},
+
+{id:'tela-receitas', g:'Telas', t:'Receitas e composição', r:'Rendimento de cada receita e os ingredientes de uma forma.',
+ tags:'sabor tradicional ninho nutella rendimento composicao forma', tela:'#cad/Receitas', rel:['tela-ingredientes','custo-preparo','tela-precos'], c:`
+<p>Cada receita é um sabor (ex.: Tradicional, Ninho com Nutella).</p>
+<h3>Campos da receita</h3>
+<ul>
+<li><b>Nome</b>: aparece nos botões da venda.</li>
+<li><b>Rendimento padrão</b>: quantas unidades uma forma costuma render. É usado quando a venda não tem lote.</li>
+<li><b>Ativa</b>: “Não” tira a receita dos botões de venda sem apagar o histórico.</li>
+</ul>
+<h3>Composição (botão Ingredientes)</h3>
+<p>Na lista de receitas, toque em <b>Ingredientes</b> para montar o que vai em <b>uma forma</b>. Informe a quantidade na mesma unidade do ingrediente (ex.: 790 g de leite condensado = 2 latas).</p>
+<p>Ao lado, o quadro <b>Custo</b> mostra o custo da forma, os custos adicionais e o custo por unidade.</p>
+<h3>Renomear uma receita</h3>
+<p>Evite renomear receitas que já têm vendas, porque as vendas e os lotes guardam o nome. Se precisar de outra versão, crie uma receita nova e desative a antiga.</p>`},
+
+{id:'tela-precos', g:'Telas', t:'Preços e combos', r:'Preço avulso e combos de cada receita.',
+ tags:'preco valor combo promocao avulso tabela', tela:'#cad/Precos', rel:['registrar-combo','margem-ticket'], c:`
+<p>Cada linha é uma forma de vender uma receita.</p>
+<h3>Campos</h3>
+<ul>
+<li><b>Receita</b>: o sabor.</li>
+<li><b>Descrição</b>: ex.: Avulso, Combo 2, Combo 3.</li>
+<li><b>Quantidade de unidades</b>: 1 para avulso, 3 para combo de 3, e assim por diante.</li>
+<li><b>Preço</b>: o valor total (ex.: Combo 3 por R$ 18).</li>
+<li><b>Ativo</b>: “Não” desliga uma promoção sem apagar.</li>
+</ul>
+<h3>Por que cadastrar o avulso</h3>
+<p>O preço avulso (1 unidade) é a referência do Painel para calcular quanto os combos deram de desconto. Sem ele, o bloco “Avulso x combo” não aparece.</p>`},
+
+{id:'tela-custos-adicionais', g:'Telas', t:'Custos adicionais', r:'Saquinho, etiqueta, sacola e outros custos além dos ingredientes.',
+ tags:'embalagem saquinho etiqueta sacola caixinha adicional', tela:'#cad/CustosAdicionais', rel:['custo-preparo','tela-receitas'], c:`
+<p>Custos que não são ingredientes, mas entram no custo da venda.</p>
+<h3>Campos</h3>
+<ul>
+<li><b>Item</b>: ex.: saquinho, etiqueta, sacola.</li>
+<li><b>Preço do pacote</b> e <b>Quantidade no pacote</b>: o app calcula o custo de cada um.</li>
+<li><b>Aplicar</b>: <b>Por unidade</b> (ex.: um saquinho por palha), <b>Por pedido</b> (ex.: uma sacola por venda) ou <b>Por fornada</b> (ex.: papel-manteiga de uma forma).</li>
+<li><b>Ativo</b>: o custo só entra nas contas quando está “Sim”.</li>
+</ul>
+<p>Ative um item só quando começar a usá-lo de verdade. As vendas já salvas não mudam.</p>`},
+
+{id:'tela-locais', g:'Telas', t:'Locais de venda', r:'Onde você vende e o percentual de repasse de cada lugar.',
+ tags:'nucleo detran outros local repasse porcentagem', tela:'#cad/Locais', rel:['repasse','tela-repasses'], c:`
+<h3>Campos</h3>
+<ul>
+<li><b>Nome</b>: ex.: Núcleo, Detran, Outros.</li>
+<li><b>Repasse (%)</b>: quanto do valor vendido vai para o local. Ex.: 20 para o Núcleo. Use 0 quando não há repasse.</li>
+<li><b>Observação</b>: opcional.</li>
+</ul>
+<p>Locais com repasse maior que zero aparecem na tela <a href="#ajuda/tela-repasses">Repasses</a>.</p>`},
+
+{id:'tela-clientes', g:'Telas', t:'Clientes', r:'Nome, WhatsApp e local habitual de cada cliente.',
+ tags:'cliente telefone whatsapp contato cadastro', tela:'#cad/Clientes', rel:['cobrar-whatsapp','tela-receber'], c:`
+<p>Cliente novo é cadastrado sozinho quando você registra uma venda com um nome que ainda não existe.</p>
+<h3>Campos</h3>
+<ul>
+<li><b>Nome</b>: igual ao usado nas vendas.</li>
+<li><b>Telefone (WhatsApp)</b>: com DDD, ex.: 11 98888-7777. Sem ele, os botões Cobrar e Chamar não aparecem.</li>
+<li><b>Local habitual</b>: preenche o local sozinho nas próximas vendas desse cliente.</li>
+<li><b>Observação</b>: opcional.</li>
+</ul>
+<h3>Mesmo cliente com nomes diferentes</h3>
+<p>“Cris” e “Cristina” viram dois clientes. Para juntar, edite as vendas e use um único nome.</p>`},
+
+{id:'tela-compras', g:'Telas', t:'Compras', r:'Registro do que foi gasto no mercado. Cada compra entra no estoque.',
+ tags:'compra mercado gasto despesa atacadao assai nota', tela:'#cad/Compras', rel:['registrar-compra','estoque-ingredientes','compra-depois-fornada'], c:`
+<p>Mostra as compras do mês escolhido. Elas alimentam o estoque de ingredientes, o Caixa da empresa e os Gastos do mês no Painel.</p>
+<h3>Campos</h3>
+<ul>
+<li><b>Data</b> e <b>Mercado</b>.</li>
+<li><b>Item</b>: use o mesmo nome do ingrediente para a compra entrar no estoque dele.</li>
+<li><b>Quantidade</b> e <b>Unidade</b>: quantos potes ou latas (un) ou o peso total (g ou kg). Sem quantidade, a compra não entra no estoque.</li>
+<li><b>Valor pago</b>: o total da compra daquele item.</li>
+<li><b>Tipo</b>: Ingrediente, Embalagem, Investimento (forma, cortador, equipamentos) ou Outro. Só o tipo Ingrediente entra no estoque.</li>
+<li><b>Usada em fornadas já registradas</b>: aparece para ingredientes. Marque os lotes que já usaram esta compra. Veja <a href="#ajuda/compra-depois-fornada">Compra registrada depois da fornada</a>.</li>
+<li><b>Observação</b>: opcional.</li>
+</ul>`},
+
+{id:'tela-config', g:'Telas', t:'Configurações', r:'Reserva, meta, mensagens do WhatsApp e alerta de lote antigo.',
+ tags:'configuracao ajuste regra meta mensagem alerta', tela:'#config', rel:['reserva','cobrar-whatsapp'], c:`
+<h3>Campos</h3>
+<ul>
+<li><b>Nome do negócio</b>.</li>
+<li><b>Regra da reserva</b>: <b>Igual ao custo</b> (separa de reserva o mesmo valor do custo) ou <b>Percentual da venda</b> (ex.: 10% de cada venda). Veja <a href="#ajuda/reserva">Reserva</a>.</li>
+<li><b>Rendimento padrão</b>: usado quando a receita não tem rendimento próprio.</li>
+<li><b>Meta de lucro mensal</b>: aparece no Painel com o progresso e a projeção.</li>
+<li><b>Mensagem de cobrança</b>: texto do botão Cobrar. Use {nome} e {valor}.</li>
+<li><b>Mensagem para clientes sumidos</b>: texto do botão Chamar no Painel. Use {nome}.</li>
+<li><b>Alerta de lote antigo</b>: depois de quantos dias da fornada o Painel avisa (padrão 7).</li>
+</ul>
+<p>Mudar a regra da reserva vale para as próximas vendas. As já salvas mantêm os valores.</p>`},
+
+/* ---------------- CONCEITOS ---------------- */
+{id:'custo-preparo', g:'Conceitos', t:'Custo de preparo', r:'Quanto custou produzir as unidades vendidas.',
+ tags:'custo gasto ingrediente preparo unidade', rel:['como-calcula','tela-receitas','lote'], c:`
+<p>É o custo dos ingredientes das unidades vendidas, mais os custos adicionais ativos.</p>
+<h3>Como é calculado</h3>
+<ul>
+<li><b>Venda com lote</b>: usa o custo por unidade gravado no lote, no dia da fornada.</li>
+<li><b>Venda sem lote</b>: usa os preços atuais dos ingredientes ÷ o rendimento da forma.</li>
+</ul>
+<p>Depois soma os custos adicionais ativos: por unidade, por pedido e por fornada.</p>
+<p>Exemplo: forma com custo de R$ 35,20 que rende 16 unidades = R$ 2,20 por unidade.</p>`},
+
+{id:'repasse', g:'Conceitos', t:'Repasse', r:'A parte do valor vendido que vai para o local de venda.',
+ tags:'repasse nucleo comissao porcentagem 20', rel:['tela-repasses','tela-locais'], c:`
+<p>É o percentual do local aplicado sobre o <b>valor da venda</b>. Ex.: venda de R$ 18 no Núcleo, com 20% = R$ 3,60 de repasse.</p>
+<p>O repasse é gravado na venda. A tela <a href="#ajuda/tela-repasses">Repasses</a> soma o devido e controla o que já foi repassado.</p>
+<h3>Venda sem local</h3>
+<p>Se o campo Local ficar vazio, não há repasse. Confira o local nas vendas feitas no Núcleo.</p>`},
+
+{id:'reserva', g:'Conceitos', t:'Reserva da empresa', r:'O dinheiro separado para reposição e investimentos.',
+ tags:'reserva caixa guardar separar investimento poupanca', rel:['caixa-empresa','tela-config','lucro-disponivel'], c:`
+<p>Além de repor os ingredientes, cada venda separa uma reserva para a empresa: dinheiro para imprevistos, reposição e investimentos.</p>
+<h3>Regras disponíveis</h3>
+<ul>
+<li><b>Igual ao custo</b> (padrão): a reserva é o mesmo valor do custo de preparo. Se a venda custou R$ 6,60, separa mais R$ 6,60.</li>
+<li><b>Percentual da venda</b>: separa um percentual fixo do valor vendido.</li>
+</ul>
+<p>A regra é escolhida em <a href="#ajuda/tela-config">Configurações</a>. O saldo acumulado aparece no <a href="#ajuda/caixa-empresa">Caixa da empresa</a>.</p>`},
+
+{id:'lucro-disponivel', g:'Conceitos', t:'Lucro disponível', r:'O que sobra de verdade depois de tudo separado.',
+ tags:'lucro ganho sobra liquido retirar', rel:['como-calcula','reserva','prob-lucro-negativo'], c:`
+<p>É o valor da venda menos o custo de preparo, o repasse e a reserva. É o dinheiro que pode ser retirado sem prejudicar o negócio.</p>
+<h3>Quando ele fica baixo</h3>
+<p>Combos com desconto, repasse e a reserva igual ao custo reduzem bastante o lucro por unidade. O Painel ajuda a ver isso nos blocos “Por local” e “Avulso x combo”.</p>`},
+
+{id:'lote', g:'Conceitos', t:'Lote', r:'Cada fornada, com o custo gravado no dia em que foi feita.',
+ tags:'lote fornada forma producao estoque', rel:['registrar-fornada','tela-lotes','trocar-lote'], c:`
+<p>Um lote é uma fornada. Quando você registra a fornada, o app grava o custo com o preço da compra usada de cada ingrediente e calcula o custo por unidade.</p>
+<h3>Por que isso importa</h3>
+<p>Os preços mudam a cada compra. Com lotes, a venda de hoje de uma fornada da semana passada usa o custo da semana passada. Assim, dá para ver o lucro real de cada fornada.</p>
+<h3>Ligação com as vendas</h3>
+<p>Cada venda é ligada a um lote. Se há mais de um lote com unidades sobrando, o app pergunta de qual saiu. Veja <a href="#ajuda/trocar-lote">Escolher ou trocar o lote</a>.</p>`},
+
+{id:'caixa-empresa', g:'Conceitos', t:'Caixa da empresa', r:'Quanto dinheiro existe para repor ingredientes e investir.',
+ tags:'caixa saldo dinheiro reserva reposicao conta', tela:'#inicio', rel:['reserva','registrar-compra'], c:`
+<p>Aparece no Painel e soma, até o fim do mês escolhido:</p>
+<p><b>separado para repor ingredientes + reserva da empresa − compras = saldo em caixa</b></p>
+<h3>Só vendas recebidas</h3>
+<p>Entram só as vendas já pagas, porque o dinheiro das pendentes ainda não chegou. O bloco avisa quanto entra quando os pendentes pagarem.</p>
+<h3>Saldo negativo</h3>
+<p>Significa que as compras passaram do valor separado, e a diferença saiu do lucro ou do seu bolso. Pode acontecer no começo, quando as compras vêm antes das vendas.</p>`},
+
+{id:'margem-ticket', g:'Conceitos', t:'Margem, ticket médio e preço médio', r:'Três números para entender o desempenho das vendas.',
+ tags:'margem ticket media preco medio percentual', rel:['tela-painel','registrar-combo'], c:`
+<h3>Margem de lucro</h3>
+<p>Lucro disponível ÷ vendido. Margem de 20% significa que R$ 0,20 de cada R$ 1 vendido viram lucro.</p>
+<h3>Ticket médio</h3>
+<p>Vendido ÷ número de vendas. Mostra quanto cada cliente gasta, em média, por compra. Combos costumam aumentar o ticket.</p>
+<h3>Preço médio por unidade</h3>
+<p>Vendido ÷ unidades. Se o avulso é R$ 7 e o preço médio é R$ 6,40, os combos estão puxando o preço para baixo.</p>`},
+
+{id:'registrar-combo', g:'Como fazer', t:'Registrar uma venda em combo', r:'Como lançar 3 por R$ 18 e quantidades misturadas.',
+ tags:'combo promocao 3 por 18 desconto kit', tela:'#vendas', rel:['tela-precos','registrar-venda'], c:`
+<ol>
+<li>Abra uma nova venda.</li>
+<li>Em <b>Preço / combo</b>, toque em “Combo 3 · R$ 18”. A quantidade e o valor são preenchidos.</li>
+<li>Complete cliente, local e pagamento, e salve.</li>
+</ol>
+<h3>Quantidades misturadas</h3>
+<p>Se a pessoa levar 4 unidades, use o + até 4. O app monta sozinho “Combo 3 + Avulso” = R$ 25.</p>
+<h3>Preço combinado na hora</h3>
+<p>Se você deu um desconto diferente, digite o valor no campo <b>Valor</b>. O app mantém o que você digitou.</p>`},
+
+/* ---------------- COMO FAZER ---------------- */
+{id:'registrar-venda', g:'Como fazer', t:'Registrar uma venda', r:'Passo a passo para lançar uma venda.',
+ tags:'nova venda lancar vender pedido registrar', tela:'#vendas', rel:['tela-vendas','registrar-combo','baixa-pagamento'], c:`
+<ol>
+<li>Toque no botão <b>+</b> (celular) ou em <b>Nova venda</b> (computador).</li>
+<li>Confira a <b>Data</b>. Ela vem com hoje; mude se a venda foi em outro dia.</li>
+<li>Digite o <b>Cliente</b> e escolha a <b>Receita</b>.</li>
+<li>Toque no preço ou combo, ou ajuste a <b>Quantidade</b>.</li>
+<li>Escolha o <b>Local</b> (define o repasse).</li>
+<li>Marque <b>Pendente</b> ou <b>Pago</b>.</li>
+<li>Toque em <b>Salvar venda</b>. Se houver mais de um lote com unidades, o app pergunta de qual saiu.</li>
+</ol>
+<h3>Venda de outro dia</h3>
+<p>No celular, depois de escolher a data no calendário, confira se ela ficou certa no campo antes de salvar.</p>`},
+
+{id:'baixa-pagamento', g:'Como fazer', t:'Dar baixa num pagamento', r:'Marcar como paga uma ou todas as vendas de um cliente.',
+ tags:'baixa pagou recebi quitou pix dinheiro pago cliente pagou uma venda individual parcial', tela:'#receber', rel:['tela-receber','cobrar-whatsapp'], c:`
+<h3>Todas as vendas do cliente</h3>
+<p>Em <b>A receber</b>, toque em <b>Recebi no Pix</b> ou <b>Recebi em dinheiro</b> no cliente. Todas as pendentes dele ficam pagas, com a data de hoje.</p>
+<h3>Só uma venda</h3>
+<ol>
+<li>Vá em <b>Vendas</b> e filtre por <b>Pendentes</b> (mude o mês se a venda for antiga).</li>
+<li>Toque na venda, marque <b>Pago</b>, escolha a forma e a data do pagamento.</li>
+<li>Salve.</li>
+</ol>
+<h3>Pagamento parcial</h3>
+<p>O app não divide uma venda em partes. Se o cliente pagou uma parte, deixe a venda como pendente e anote o valor recebido em Observação até ele quitar.</p>`},
+
+{id:'cobrar-whatsapp', g:'Como fazer', t:'Cobrar pelo WhatsApp', r:'Enviar a mensagem de cobrança pronta com o valor devido.',
+ tags:'cobrar cobranca whatsapp zap mensagem lembrar', tela:'#receber', rel:['tela-clientes','tela-config'], c:`
+<ol>
+<li>Cadastre o telefone do cliente em <a href="#cad/Clientes">Clientes</a>, com DDD.</li>
+<li>Em <b>A receber</b>, toque em <b>Cobrar</b> no cliente.</li>
+<li>O WhatsApp abre com a mensagem e o valor total. Revise e envie.</li>
+</ol>
+<h3>Mudar o texto</h3>
+<p>Edite a mensagem em <a href="#ajuda/tela-config">Configurações</a>. {nome} vira o primeiro nome do cliente e {valor} vira o total devido.</p>
+<h3>Clientes sumidos</h3>
+<p>No Painel, o bloco “Clientes sumidos” tem o botão <b>Chamar</b>, com uma mensagem de oferta que também pode ser editada nas Configurações.</p>`},
+
+{id:'registrar-fornada', g:'Como fazer', t:'Registrar uma fornada (lote)', r:'Lançar cada forma produzida, com rendimento, perdas e as compras usadas.',
+ tags:'fornada forma fiz produzi lote producao perda rendimento ingrediente compra usada', tela:'#lotes', rel:['lote','estoque-ingredientes','tela-lotes'], c:`
+<ol>
+<li>Vá em <b>Mais → Lotes e fornadas</b> e toque em <b>Nova fornada</b>.</li>
+<li>Confira a <b>Data</b> e escolha a <b>Receita</b>.</li>
+<li>Informe as <b>Unidades produzidas</b> (quantos pedaços saíram) e as <b>Perdas</b>, se houver.</li>
+<li>Confira os <b>Ingredientes desta fornada</b>: cada um já vem com a compra em uso marcada.</li>
+<li>Salve. O app cria o lote com o custo das compras marcadas e desconta do estoque o que a forma usou.</li>
+</ol>
+<h3>Ingredientes desta fornada</h3>
+<p>Cada ingrediente mostra a quantidade usada, o custo e qual compra está sendo usada. Se esta fornada usou outra compra (por exemplo, a Nutella mais antiga), troque no seletor. A opção “Sem compra” usa o último preço do cadastro e não desconta do estoque.</p>
+<h3>Quando uma compra acaba</h3>
+<p>Se a fornada consumir o que restava de uma compra, o app avisa e a próxima da fila passa a ser usada nas próximas fornadas. Se a forma usou o fim de um pote e o começo de outro, vale o preço da compra marcada.</p>
+<h3>Registrar perdas depois</h3>
+<p>Se um pedaço estragar dias depois, abra o lote em <b>Editar lote</b> e aumente as perdas. O custo do lote não muda.</p>
+<h3>Mudar o rendimento ou as compras depois</h3>
+<p>Ao corrigir as unidades produzidas ou trocar a compra de um ingrediente, o custo do lote é recalculado e as vendas daquele lote são atualizadas sozinhas.</p>`},
+
+{id:'registrar-compra', g:'Como fazer', t:'Registrar uma compra', r:'Lançar a ida ao mercado. A compra entra no estoque do ingrediente.',
+ tags:'compra comprar mercado preco atualizar nota gasto forma cortador equipamento investimento nova', tela:'#cad/Compras', rel:['estoque-ingredientes','compra-depois-fornada','tela-compras'], c:`
+<ol>
+<li>Vá em <b>Mais → Compras</b> e toque em <b>Adicionar</b>. Ou, em Ingredientes, abra o <b>Estoque</b> do ingrediente e toque em <b>Registrar compra</b>.</li>
+<li>Preencha data, mercado e o <b>Item</b> com o mesmo nome do ingrediente.</li>
+<li>Em <b>Quantidade</b> e <b>Unidade</b>, informe quantas embalagens (un) ou o peso total (g ou kg).</li>
+<li>Informe o <b>Valor pago</b> total e o <b>Tipo</b>.</li>
+<li>Salve. O app avisa se a compra ficou <b>em uso</b> ou <b>na fila</b>.</li>
+</ol>
+<h3>Em uso ou na fila</h3>
+<p>Se ainda há uma compra anterior do ingrediente em uso, a nova entra <b>na fila</b> e as fornadas continuam usando o preço da anterior. Quando a anterior acaba, a nova passa a ser usada sozinha. Exemplo: com a Nutella de 26/09 ainda em uso, a compra do dia 12 fica na fila, e a fornada do dia 15 usa o preço de 26/09.</p>
+<h3>Exemplos de quantidade</h3>
+<ul>
+<li>2 potes de Nutella de 650 g por R$ 90 → Quantidade 2, Unidade un.</li>
+<li>10 latas de leite condensado → Quantidade 10, Unidade un.</li>
+<li>3,95 kg de leite condensado a granel → Quantidade 3.95, Unidade kg.</li>
+</ul>
+<h3>Quando a compra não entra no estoque</h3>
+<ul>
+<li>O item não tem o mesmo nome de um ingrediente cadastrado.</li>
+<li>A quantidade ficou vazia.</li>
+<li>A unidade não combina (ex.: ml para um ingrediente em g).</li>
+<li>O tipo não é Ingrediente.</li>
+</ul>
+<h3>Forma, cortador e equipamentos</h3>
+<p>Use o tipo <b>Investimento</b>. Eles aparecem no bloco “Retorno do investimento” do Painel.</p>`},
+
+{id:'trocar-lote', g:'Como fazer', t:'Escolher ou trocar o lote de uma venda', r:'Indicar de qual fornada saiu o produto vendido.',
+ tags:'lote escolher trocar mudar venda fornada antigo', tela:'#vendas', rel:['lote','registrar-venda'], c:`
+<h3>Na hora da venda</h3>
+<ul>
+<li>Com <b>um</b> lote com unidades sobrando, o app usa esse lote sozinho.</li>
+<li>Com <b>dois ou mais</b>, ao salvar abre a janela “De qual lote saiu esta venda?”. Toque no lote e a venda é salva.</li>
+<li>O campo <b>Lote</b> fica laranja enquanto não foi confirmado. Toque nele para escolher antes de salvar.</li>
+</ul>
+<h3>Lote que aparece como encerrado</h3>
+<p>Na janela, toque em <b>Mostrar lotes encerrados</b> para escolher um lote que o app considera esgotado.</p>
+<h3>Trocar depois</h3>
+<p>Abra a venda em Vendas, toque no campo Lote, escolha outro e salve. O custo e o lucro são recalculados.</p>`},
+
+{id:'organizar-antigos', g:'Como fazer', t:'Organizar registros antigos', r:'Ligar vendas e fornadas de antes da função de lotes.',
+ tags:'antigo organizar ligar vincular registros anteriores lote sem lote', tela:'#lotes', rel:['prob-lote-zerado','lote'], c:`
+<p>Vendas e fornadas registradas antes da função de lotes ficam sem ligação. A tela Lotes mostra o aviso “Registros de antes dos lotes”.</p>
+<ol>
+<li>Toque em <b>Organizar agora</b>.</li>
+<li>Confira a prévia: fornadas que vão receber número e custo, e quantas vendas vão para cada lote.</li>
+<li>Deixe marcada a opção de recalcular custo, reserva e lucro, e toque em <b>Organizar</b>.</li>
+</ol>
+<h3>Como as vendas são distribuídas</h3>
+<p>Cada venda vai para a fornada mais recente da mesma receita feita até a data da venda. Depois dá para trocar qualquer uma.</p>
+<h3>Venda que continua sem lote</h3>
+<p>Acontece quando não há fornada da mesma receita registrada antes da data da venda. Registre essa fornada com a data certa e toque em Organizar de novo.</p>
+<p>O custo das fornadas antigas é calculado com o último preço do cadastro de cada ingrediente, sem descontar do estoque atual. Depois, dá para ligar as compras certas a esses lotes. Veja <a href="#ajuda/compra-depois-fornada">Compra registrada depois da fornada</a>.</p>`},
+
+{id:'corrigir-excluir', g:'Como fazer', t:'Corrigir ou excluir um registro', r:'Editar ou apagar vendas, compras, lotes e cadastros.',
+ tags:'editar alterar corrigir excluir apagar deletar remover teste', rel:['prob-mes-errado','prob-nao-atualiza'], c:`
+<p>Toque em qualquer item de uma lista para abrir. Use <b>Salvar</b> para corrigir ou <b>Excluir</b> para apagar.</p>
+<h3>Ordem para apagar testes</h3>
+<ol>
+<li>Exclua as vendas primeiro. Um lote com vendas ligadas não pode ser excluído.</li>
+<li>Depois exclua os lotes.</li>
+<li>Apague os clientes criados pelos testes em Clientes.</li>
+<li>Compras de teste: exclua a compra. Ela sai do estoque; confira o último preço em Ingredientes.</li>
+</ol>
+<h3>Direto na planilha</h3>
+<p>Também dá para apagar linhas inteiras na planilha do Google, mantendo a linha 1 (cabeçalho). Nunca renomeie nem apague colunas. Depois, toque em <b>Recarregar dados da planilha</b>, em Mais.</p>`},
+
+
+{id:'estoque-ingredientes', g:'Conceitos', t:'Estoque de ingredientes', r:'Compra em uso, na fila e acabada: qual preço entra em cada fornada.',
+ tags:'estoque em uso fila acabou terminou ainda tenho antiga nova pote sobrou resta', tela:'#cad/Ingredientes', rel:['registrar-compra','registrar-fornada','compra-depois-fornada'], c:`
+<p>Cada compra de ingrediente com quantidade vira um estoque. O preço que entra nas fornadas é o da compra <b>em uso</b>, e não o da última compra feita.</p>
+<h3>Os três estados</h3>
+<ul>
+<li><b>Em uso</b>: a compra que as fornadas estão consumindo agora.</li>
+<li><b>Na fila</b>: compras mais novas, esperando a em uso acabar.</li>
+<li><b>Acabou</b>: já foi consumida.</li>
+</ul>
+<h3>Como a troca acontece sozinha</h3>
+<p>Cada fornada desconta do estoque a quantidade da receita (ex.: 150 g de Nutella). Quando a compra em uso chega a zero, a mais antiga da fila passa a ser a em uso.</p>
+<h3>Corrigir à mão</h3>
+<p>Em Ingredientes, toque em <b>Estoque</b> no ingrediente. Em cada compra há botões para:</p>
+<ul>
+<li><b>Marcar como acabou</b>: o pote acabou antes do que o app calculou.</li>
+<li><b>Usar agora</b>: começar a usar uma compra da fila antes da hora.</li>
+<li><b>Voltar a usar</b>: reabrir uma compra marcada como acabada por engano.</li>
+<li><b>Corrigir quanto resta</b>: informar quanto ainda tem de verdade (ex.: sobrou 200 g).</li>
+</ul>
+<h3>Compras de antes do controle de estoque</h3>
+<p>Fornadas feitas antes desta função não descontaram do estoque. Por isso, uma compra antiga pode aparecer com mais do que realmente sobrou. Use <b>Corrigir quanto resta</b> ou <b>Marcar como acabou</b>.</p>`},
+
+{id:'compra-depois-fornada', g:'Como fazer', t:'Compra registrada depois da fornada', r:'Ligar uma compra a lotes que já existem e recalcular o custo deles.',
+ tags:'esqueci registrar compra depois retroativo atrasado lote antigo ligar fornada usada', tela:'#cad/Compras', rel:['registrar-compra','estoque-ingredientes','registrar-fornada'], c:`
+<p>Se você registrou a fornada antes de registrar a compra do ingrediente que ela usou, dá para corrigir na própria compra.</p>
+<ol>
+<li>Registre a compra normalmente, com quantidade e valor.</li>
+<li>Em <b>Usada em fornadas já registradas</b>, marque os lotes que usaram esta compra.</li>
+<li>Salve. O app troca o preço daquele ingrediente nesses lotes, recalcula o custo deles e o lucro das vendas ligadas.</li>
+</ol>
+<h3>Desfazer</h3>
+<p>Abra a compra, desmarque o lote e salve. O lote volta a usar o último preço do cadastro para aquele ingrediente.</p>
+<h3>Lotes antigos</h3>
+<p>Em lotes criados antes do controle por ingrediente, os outros ingredientes também são recalculados, usando o último preço do cadastro. O formulário avisa quando isso vai acontecer.</p>
+<h3>Também pela fornada</h3>
+<p>Outra forma é abrir o lote em <b>Editar lote</b> e trocar a compra do ingrediente no seletor.</p>`},
+/* ---------------- PROBLEMAS COMUNS ---------------- */
+{id:'prob-mes-errado', g:'Problemas comuns', t:'Venda contando no mês errado', r:'Por que uma venda aparece em outro mês e como corrigir.',
+ tags:'mes errado data outubro setembro contou outro mes', rel:['tela-vendas','corrigir-excluir'], c:`
+<p>O mês da venda vem do campo <b>Data</b> (data da venda), não da data do pagamento.</p>
+<h3>Como corrigir</h3>
+<ol>
+<li>Em Vendas, veja a data que aparece na linha da venda.</li>
+<li>Se estiver errada, toque na venda, corrija a <b>Data</b> e salve.</li>
+</ol>
+<h3>Outras causas</h3>
+<ul>
+<li>As telas <b>A receber</b> e <b>Lotes</b> mostram todos os meses juntos.</li>
+<li>Uma venda de setembro paga em outubro continua contando em setembro.</li>
+</ul>`},
+
+{id:'prob-lote-zerado', g:'Problemas comuns', t:'Lote zerado ou “Lote ?”', r:'Lote sem vendas, sem número ou com custo R$ 0,00.',
+ tags:'lote zerado zerou sumiu interrogacao sem custo vendas zero', tela:'#lotes', rel:['organizar-antigos','trocar-lote'], c:`
+<p>Nenhum dado foi apagado. As vendas continuam na planilha e aparecem em Vendas.</p>
+<h3>Causas</h3>
+<ul>
+<li><b>Vendidas 0</b>: as vendas não estão ligadas ao lote (comum em vendas de antes da função de lotes).</li>
+<li><b>Lote ?</b> e <b>custo R$ 0,00</b>: fornada registrada antes da função de lotes.</li>
+</ul>
+<h3>Como resolver</h3>
+<p>Na tela Lotes, toque em <b>Organizar agora</b>. Veja <a href="#ajuda/organizar-antigos">Organizar registros antigos</a>.</p>`},
+
+{id:'prob-lucro-negativo', g:'Problemas comuns', t:'Lucro negativo', r:'Por que o lucro de uma venda, receita ou lote aparece negativo.',
+ tags:'negativo prejuizo vermelho menos perdendo dinheiro', rel:['lucro-disponivel','como-calcula'], c:`
+<h3>Lote com lucro negativo</h3>
+<p>No começo é normal: as perdas já entram na conta e as vendas ainda são poucas. O lucro cresce a cada venda ligada ao lote.</p>
+<h3>Venda ou receita com lucro negativo</h3>
+<p>O preço não está cobrindo custo + repasse + reserva. Confira:</p>
+<ul>
+<li>Se o custo da receita está certo (quantidades e preços dos ingredientes).</li>
+<li>Se o rendimento do lote está certo. Rendimento baixo encarece cada unidade.</li>
+<li>Se o combo, somado ao repasse, deixa margem. Ex.: com custo de R$ 3,16, um combo 3 por R$ 18 no Núcleo dá lucro negativo com reserva igual ao custo.</li>
+</ul>`},
+
+{id:'prob-token', g:'Problemas comuns', t:'Erro “Token não configurado” ou app não carrega', r:'Problemas de conexão entre o app e a planilha.',
+ tags:'token erro conexao nao carrega carregando planilha apps script api', rel:['prob-nao-atualiza'], c:`
+<h3>“Token não configurado”</h3>
+<ol>
+<li>No editor do Apps Script, rode a função <b>configurarToken()</b> uma vez.</li>
+<li>No arquivo do app (index.html), confira se <b>TOKEN</b> tem a mesma senha e se <b>API_URL</b> tem o endereço do App da Web (termina em /exec).</li>
+</ol>
+<h3>Mudei o código do Apps Script</h3>
+<p>Publique como nova versão: Implantar → Gerenciar implantações → editar → Nova versão → Implantar. Assim o endereço continua o mesmo.</p>`},
+
+{id:'prob-nao-atualiza', g:'Problemas comuns', t:'App não mostra os dados atualizados', r:'Quando a planilha mudou e o app não mostra.',
+ tags:'atualiza atualizar atualizou recarregar desatualizado aparece apareceu planilha editada tela antiga', rel:['corrigir-excluir','prob-token'], c:`
+<p>O app carrega a planilha ao abrir. Se alguém mudou algo direto na planilha, ou em outro celular, toque em <b>Recarregar dados da planilha</b>, em Mais, ou recarregue a página.</p>
+<h3>Dois aparelhos ao mesmo tempo</h3>
+<p>Cada aparelho vê os dados do momento em que abriu. Recarregue antes de editar algo que outra pessoa possa ter mudado.</p>`},
+
+{id:'prob-centavos', g:'Problemas comuns', t:'Valores com centavos errados', r:'Preços como 6.99 aparecendo como 699.',
+ tags:'centavos decimal virgula ponto valor errado 699', rel:['tela-ingredientes'], c:`
+<p>Uma versão antiga do app lia números com ponto decimal como milhares (6.99 virava 699). Isso já foi corrigido.</p>
+<h3>O que conferir</h3>
+<p>Se você cadastrou preços com centavos pelo app antes da correção, confira <b>Ingredientes</b>, <b>Preços e combos</b> e <b>Compras</b> e corrija os valores que estiverem 100 vezes maiores.</p>`},
+];
+
+/* Sinônimos: palavras de cada grupo se ajudam na busca */
+const KB_SIN = [
+  ['fiado','pendente','pendentes','devendo','deve','devem','divida','debito','calote','atrasado','atraso','receber','inadimplente'],
+  ['cobrar','cobranca','lembrar','whatsapp','zap','wpp','mensagem'],
+  ['excluir','apagar','deletar','remover'],
+  ['editar','alterar','mudar','corrigir','trocar','arrumar','ajustar'],
+  ['lucro','ganho','ganhei','lucrei','sobrou'],
+  ['custo','gasto','gastei','despesa','custa','custou'],
+  ['venda','vender','vendi','vendeu','pedido','encomenda'],
+  ['fornada','forma','lote','producao','produzir','produzi','assar','tabuleiro'],
+  ['compra','comprar','comprei','mercado','supermercado','atacadao','assai'],
+  ['repasse','repassar','nucleo','comissao','porcentagem'],
+  ['reserva','caixa','guardar','separar','poupanca'],
+  ['pagar','pagou','pagamento','pago','pix','dinheiro','baixa','quitou','recebi'],
+  ['combo','promocao','desconto','kit'],
+  ['perda','perdas','perdeu','quebrou','estragou','estragado'],
+  ['negativo','prejuizo','vermelho'],
+  ['zerado','zerou','sumiu','sumiram','vazio'],
+  ['erro','falha','bug','problema','travou'],
+  ['cliente','freguesia','comprador'],
+  ['painel','dashboard','grafico','indicador','inicio'],
+  ['meta','objetivo'],
+  ['estoque','restam','sobrando','disponivel'],
+  ['acabou','terminou','esgotou','fim','zerou'],
+  ['fila','proxima','nova','guardada'],
+  ['antiga','anterior','velha','passada'],
+];
+const KB_SUGESTOES = ['Como registro um combo?', 'Por que o lucro do lote está negativo?', 'Como cobro pelo WhatsApp?',
+  'O que é a reserva da empresa?', 'Comprei Nutella mas ainda tenho a antiga', 'Esqueci de registrar a compra antes da fornada'];
+
+/* ============ BUSCA NA BASE DE CONHECIMENTO ============ */
+const KB_STOP = new Set(('a o as os e de da do das dos um uma uns umas que como eu meu minha meus minhas me mim para pra pro pros pras pelo pela pelos pelas por ' +
+  'no na nos nas num numa em se ser sou foi era ta esta estao estou isso esse essa este esses essas ele ela eles elas qual quais onde quando porque pq ' +
+  'com ao aos ja la aqui ai so tem ter tenho tinha vai vou faco faz fazer posso pode podemos consigo consegue preciso precisa quero queria gostaria saber ' +
+  'sobre algum alguma alguns nao sim muito oi ola app aplicativo coisa isto dele dela tambem mesmo voce vc ou mas entao agora hoje').split(' '));
+const KB_SUF = ['amentos','imentos','amento','imento','acoes','icoes','ancas','encas','mente','acao','icao','anca','enca','ados','idos','adas','idas',
+  'ando','endo','indo','aram','eram','iram','avam','ado','ido','ada','ida','ar','er','ir','ou','eu','as','es','os','is','a','e','o','i','s'];
+const kbNorm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+function kbStem(w){ if (/^\d+$/.test(w) || w.length <= 3) return w; for (const s of KB_SUF) if (w.endsWith(s) && w.length - s.length >= 3) return w.slice(0, -s.length); return w; }
+const KB_GRUPO = {}; KB_SIN.forEach((ws, i) => ws.forEach(w => { KB_GRUPO[kbStem(kbNorm(w))] = 'g' + i; }));
+function kbTokens(s){ return kbNorm(s).split(' ').filter(w => w && !KB_STOP.has(w)).map(kbStem); }
+const kbTexto = html => String(html).replace(/<\/?(b|strong|a|i|em|mark|span)(\s[^>]*)?>/g, '').replace(/<\/li>/g, '. ')
+  .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/\s+/g, ' ').replace(/([.:;!?])\s*\.(\s|$)/g, '$1$2').replace(/\s+([.,:;])/g, '$1').trim();
+
+let KB_IDX = null;
+function kbIndice(){
+  if (KB_IDX) return KB_IDX;
+  const trechos = [], df = {}, vocab = new Set();
+  KB.forEach(a => {
+    const partes = a.c.split(/<h3>/);
+    partes.forEach((p, i) => {
+      let titulo = a.t, corpo = p;
+      if (i > 0){ const k = p.indexOf('</h3>'); titulo = p.slice(0, k); corpo = p.slice(k + 5); }
+      const texto = kbTexto(corpo); if (!texto) return;
+      const tf = {}; const add = (t, w) => { tf[t] = (tf[t] || 0) + w; };
+      kbTokens(texto).forEach(t => { add(t, 1); if (KB_GRUPO[t]) add(KB_GRUPO[t], .6); });
+      const extra = {}; const addX = (s, w) => kbTokens(s).forEach(t => { extra[t] = Math.max(extra[t] || 0, w); if (KB_GRUPO[t]) extra[KB_GRUPO[t]] = Math.max(extra[KB_GRUPO[t]] || 0, w * .6); });
+      addX(a.t, 2.2); addX(a.tags, 1.4); if (i > 0) addX(titulo, 1.6);
+      Object.keys({...tf, ...extra}).forEach(t => { df[t] = (df[t] || 0) + 1; if (t[0] !== 'g' || !/^g\d+$/.test(t)) vocab.add(t); });
+      trechos.push({a, titulo: i > 0 ? kbTexto(titulo) : '', texto, tf, extra});
+    });
+  });
+  KB_IDX = {trechos, df, vocab:[...vocab], N:trechos.length};
+  return KB_IDX;
+}
+function kbDist(a, b){
+  if (Math.abs(a.length - b.length) > 2) return 9;
+  const d = Array.from({length:a.length + 1}, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+function kbBuscar(pergunta){
+  const ix = kbIndice();
+  let qs = [...new Set(kbTokens(pergunta))];
+  // tolerância a erros de digitação
+  qs = qs.map(q => { if (ix.df[q] || q.length < 4) return q;
+    let melhor = null, md = q.length >= 7 ? 2 : 1;
+    ix.vocab.forEach(v => { const d = kbDist(q, v); if (d <= md && (!melhor || d < melhor.d)) melhor = {v, d}; });
+    return melhor ? melhor.v : q; });
+  const termos = [];
+  qs.forEach(q => { termos.push([q, 1]); if (KB_GRUPO[q]) termos.push([KB_GRUPO[q], .7]); });
+  if (!termos.length) return {qs, res:[]};
+  const idf = t => Math.log(1 + ix.N / (ix.df[t] || .5));
+  const porArtigo = {};
+  ix.trechos.forEach(tr => {
+    let s = 0, achou = 0;
+    termos.forEach(([t, w]) => { const f = tr.tf[t] || 0, x = tr.extra[t] || 0;
+      if (f || x){ s += w * idf(t) * ((f ? 1 + Math.log(f) : 0) + x); if (w === 1) achou++; } });
+    if (!s) return;
+    s *= 0.6 + 0.4 * (achou / Math.max(qs.length, 1));   // favorece trechos que cobrem mais palavras da pergunta
+    const atual = porArtigo[tr.a.id];
+    if (!atual || s > atual.s) porArtigo[tr.a.id] = {a:tr.a, tr, s};
+  });
+  const res = Object.values(porArtigo).sort((x, y) => y.s - x.s);
+  return {qs, res: res.length && res[0].s >= 2 ? res.slice(0, 4) : []};
+}
+function kbTrecho(tr, qs, max = 340){
+  let t = tr.texto;
+  if (t.length > max){ const corte = t.lastIndexOf('. ', max); t = t.slice(0, corte > 120 ? corte + 1 : max) + (corte > 120 ? '' : '…'); }
+  const alvo = new Set(qs);
+  return esc(t).replace(/[A-Za-zÀ-ÿ0-9]+/g, w => alvo.has(kbStem(kbNorm(w))) && !KB_STOP.has(kbNorm(w)) ? `<mark>${w}</mark>` : w);
+}
+
+/* ============ TELA: AJUDA ============ */
+const AJUDA_DA_TELA = { inicio:'tela-painel', vendas:'tela-vendas', receber:'tela-receber', repasses:'tela-repasses', mais:'primeiros-passos',
+  lotes:'tela-lotes', config:'tela-config', itens:'tela-receitas', estoque:'estoque-ingredientes',
+  'cad/Ingredientes':'tela-ingredientes', 'cad/Receitas':'tela-receitas', 'cad/Precos':'tela-precos', 'cad/CustosAdicionais':'tela-custos-adicionais',
+  'cad/Locais':'tela-locais', 'cad/Clientes':'tela-clientes', 'cad/Compras':'tela-compras', 'cad/Fornadas':'tela-lotes' };
+const kbArtigo = id => KB.find(a => a.id === id);
+
+
+function chatHTML(){
+  S.chat ||= [];
+  if (!S.chat.length) return `<div class="kb-msg bot"><p>Olá! Escreva sua dúvida do jeito que falaria, por exemplo “cliente pagou só uma venda”. Eu procuro a resposta nos artigos de ajuda.</p>
+    <div class="chips" style="margin-top:10px">${KB_SUGESTOES.map(s => `<button type="button" class="chip" data-kbq="${esc(s)}">${esc(s)}</button>`).join('')}</div></div>`;
+  return S.chat.map(m => {
+    const r = m.res, top = r[0];
+    const resposta = top ? `<p class="muted" style="margin:0 0 6px;font-size:13px">Encontrei em <b>${esc(top.a.t)}</b>${top.tr.titulo ? ' › ' + esc(top.tr.titulo) : ''}:</p>
+      <p style="margin:0">${kbTrecho(top.tr, m.qs)}</p>
+      <div class="acoes"><a class="btn" href="#ajuda/${top.a.id}">Abrir artigo completo</a></div>
+      ${r.length > 1 ? `<p class="muted" style="margin:12px 0 4px;font-size:13px">Também pode ajudar:</p>
+        <div class="kb-links">${r.slice(1).map(x => `<a href="#ajuda/${x.a.id}">${esc(x.a.t)}${x.tr.titulo ? ' › ' + esc(x.tr.titulo) : ''}</a>`).join('')}</div>` : ''}`
+      : `<p style="margin:0">Não encontrei nada sobre isso nos artigos. Tente com outras palavras, ou toque numa das perguntas abaixo.</p>
+        <div class="chips" style="margin-top:10px">${KB_SUGESTOES.slice(0, 4).map(s => `<button type="button" class="chip" data-kbq="${esc(s)}">${esc(s)}</button>`).join('')}</div>`;
+    return `<div class="kb-msg eu">${esc(m.q)}</div><div class="kb-msg bot">${resposta}</div>`;
+  }).join('');
+}
+function telaAjuda(id){
+  if (id){
+    const a = kbArtigo(id);
+    if (!a) return `<div class="head"><div><a href="#ajuda" class="muted" style="text-decoration:none;font-weight:600">‹ Ajuda</a><h1>Artigo não encontrado</h1></div></div>`;
+    const rel = (a.rel || []).map(kbArtigo).filter(Boolean);
+    return `<div class="head"><div><a href="#ajuda" class="muted" style="text-decoration:none;font-weight:600">‹ Ajuda</a><h1>${esc(a.t)}</h1><p class="sub">${esc(a.g)} · ${esc(a.r)}</p></div>
+      ${a.tela ? `<a class="btn pri" href="${a.tela}">Ir para a tela</a>` : ''}</div>
+      <article class="panel artigo">${a.c}</article>
+      ${rel.length ? `<div class="secao">Relacionados</div><div class="tiles">${rel.map(x => `<a class="tile" href="#ajuda/${x.id}"><b>${esc(x.t)}</b><small>${esc(x.r)}</small></a>`).join('')}</div>` : ''}`;
+  }
+  return `<div class="head"><div><h1>Ajuda</h1><p class="sub">Pergunte ou navegue pelos ${KB.length} artigos</p></div></div>
+    <section class="panel kb-chat"><h2>Pergunte algo</h2>
+      <div class="kb-log" id="kbLog" aria-live="polite">${chatHTML()}</div>
+      <form class="kb-form" id="kbForm" autocomplete="off"><input id="kbIn" placeholder="Ex.: como dou baixa num pagamento?" aria-label="Sua pergunta">
+        <button class="btn pri" type="submit">Perguntar</button></form>
+      ${(S.chat || []).length ? '<button type="button" class="btn" data-kblimpar style="margin-top:10px">Limpar conversa</button>' : ''}</section>
+    ${KB_GRUPOS.map(g => `<div class="secao">${g}</div><div class="tiles">${KB.filter(a => a.g === g).map(a => `<a class="tile" href="#ajuda/${a.id}"><b>${esc(a.t)}</b><small>${esc(a.r)}</small></a>`).join('')}</div>`).join('')}`;
+}
+function ligarAjuda(v){
+  const form = v.querySelector('#kbForm'); if (!form) return;
+  const log = v.querySelector('#kbLog'), inp = v.querySelector('#kbIn');
+  const perguntar = q => {
+    q = String(q || '').trim(); if (!q) return;
+    const {qs, res} = kbBuscar(q); (S.chat ||= []).push({q, qs, res});
+    if (S.chat.length > 20) S.chat.shift();
+    rota(); const l = $('#kbLog'); if (l) l.scrollTop = l.scrollHeight; const i = $('#kbIn'); if (i) i.focus({preventScroll:true});
+  };
+  form.onsubmit = e => { e.preventDefault(); perguntar(inp.value); };
+  log.onclick = e => { const b = e.target.closest('[data-kbq]'); if (b) perguntar(b.dataset.kbq); };
+  const lp = v.querySelector('[data-kblimpar]'); if (lp) lp.onclick = () => { S.chat = []; rota(); };
+  log.scrollTop = log.scrollHeight;
+}
+function botaoAjuda(base, h){
+  const chave = base === 'cad' ? 'cad/' + decodeURIComponent(h[1] || '') : base;
+  const id = AJUDA_DA_TELA[chave]; const h1 = $('#view .head h1');
+  if (id && h1 && !h1.querySelector('.ajuda-btn')) h1.insertAdjacentHTML('beforeend', ` <a class="ajuda-btn" href="#ajuda/${id}" aria-label="Ajuda sobre esta tela" title="Ajuda sobre esta tela">?</a>`);
+}
+
 /* ============ TELA: MAIS ============ */
 function telaMais(){
   const t = (href, n, d) => `<a class="tile" href="${href}"><b>${n}</b><small>${d}</small></a>`;
@@ -978,6 +1730,7 @@ function telaMais(){
     ${t('#cad/CustosAdicionais','Custos adicionais','Saquinho, etiqueta, sacola…')}
     ${t('#cad/Locais','Locais de venda','Núcleo, Detran e repasses')}
     ${t('#config','Configurações','Reserva, meta e cobrança')}</div>
+  <div class="secao">Dúvidas</div><div class="tiles">${t('#ajuda','Ajuda','Como usar cada tela e perguntas frequentes')}</div>
   <div style="margin-top:22px"><button class="btn" data-recarregar>Recarregar dados da planilha</button></div>`;
 }
 
@@ -986,9 +1739,12 @@ const REF = t => () => S[t].map(x => x.nome);
 const CAD = {
   Ingredientes:{titulo:'Ingredientes', sub:'O custo de cada receita é calculado a partir destes preços.', campos:[
     {k:'nome',l:'Nome',req:1},{k:'marca',l:'Marca'},{k:'unidade',l:'Unidade de medida',t:'select',o:['g','ml','un']},
-    {k:'qtd_embalagem',l:'Tamanho da embalagem',t:'number',req:1},{k:'preco_embalagem',l:'Preço da embalagem (R$)',t:'money',req:1},
+    {k:'qtd_embalagem',l:'Tamanho da embalagem',t:'number',req:1},{k:'preco_embalagem',l:'Último preço pago pela embalagem (R$)',t:'money',req:1},
     {k:'mercado',l:'Mercado',dl:['Atacadão','Assaí','Pão de Açúcar','Shopee']},{k:'ativo',l:'Ativo',t:'select',o:['Sim','Não']}],
-    linha:i => [i.nome, `${num(i.qtd_embalagem)} ${i.unidade || ''} por ${brl(i.preco_embalagem)}${i.mercado ? ' · ' + i.mercado : ''}`, `${brl(custoIng(i) * (i.unidade === 'un' ? 1 : 100))}`, i.unidade === 'un' ? 'por unidade' : 'por 100 ' + (i.unidade || 'g')]},
+    linha:i => { const e = estoqueDe(i.nome), fila = e.itens.filter(x => x.status === 'Na fila').length;
+      return [i.nome, `${num(i.qtd_embalagem)} ${i.unidade || ''} por ${brl(custoIng(i) * num(i.qtd_embalagem))}${e.emUso ? ' · em uso: compra de ' + dataBR(e.emUso.c.data) + ', resta ' + fmtQ(Math.max(e.emUso.resta, 0), i.unidade || 'g') : ' · sem compra em uso'}${fila ? ` · ${fila} na fila` : ''}`,
+        `${brl(custoIng(i) * (i.unidade === 'un' ? 1 : 100))}`, i.unidade === 'un' ? 'por unidade' : 'por 100 ' + (i.unidade || 'g')]; },
+    extra:i => `<a class="btn" href="#estoque/${encodeURIComponent(i.nome)}" onclick="event.stopPropagation()">Estoque</a>`},
   Receitas:{titulo:'Receitas', sub:'Toque na receita para editar. Use “Ingredientes” para montar a composição.', campos:[
     {k:'nome',l:'Nome',req:1},{k:'rendimento_padrao',l:'Rendimento padrão (unidades)',t:'number',req:1},
     {k:'ativo',l:'Ativa',t:'select',o:['Sim','Não']},{k:'observacao',l:'Observação'}],
@@ -1008,7 +1764,7 @@ const CAD = {
   Clientes:{titulo:'Clientes', sub:'Clientes novos são cadastrados sozinhos ao registrar uma venda.', campos:[
     {k:'nome',l:'Nome',req:1},{k:'telefone',l:'Telefone (WhatsApp)',t:'tel'},{k:'local_padrao',l:'Local habitual',t:'select',ref:REF('Locais')},{k:'observacao',l:'Observação'}],
     linha:c => [c.nome, [c.telefone, c.local_padrao].filter(Boolean).join(' · '), '', '']},
-  Compras:{titulo:'Compras', sub:'Ao salvar, o preço do ingrediente passa a ser o desta compra. As fornadas já feitas não mudam.', mes:1, campos:[
+  Compras:{titulo:'Compras', sub:'Cada compra de ingrediente entra no estoque: em uso ou na fila até a anterior acabar.', mes:1, campos:[
     {k:'data',l:'Data',t:'date',req:1},{k:'mercado',l:'Mercado',dl:['Atacadão','Assaí','Pão de Açúcar','Shopee']},
     {k:'ingrediente',l:'Item',req:1,dl:REF('Ingredientes')},{k:'quantidade',l:'Quantidade (potes, latas ou peso)',t:'number'},{k:'unidade',l:'Unidade',t:'select',o:['un','g','kg','ml','L','pacote']},
     {k:'valor',l:'Valor pago (R$)',t:'money',req:1},{k:'tipo',l:'Tipo',t:'select',o:['Ingrediente','Embalagem','Investimento','Outro']},{k:'observacao',l:'Observação'}],
@@ -1073,6 +1829,7 @@ function formCadastro(tab, id, preset = {}){
   if (tab === 'Fornadas') return formFornada(id);
   const c = CAD[tab]; const r = id ? S[tab].find(x => String(x.id) === String(id)) : preset;
   const m = abrirModal((id ? 'Editar ' : 'Adicionar ') + c.titulo.toLowerCase().replace(/s$/,'').replace(/ e combos$/,''), c.campos.map(f => campoHTML(f, r[f.k])).join(''), {salvar:'Salvar', excluir:!!id});
+  const lig = tab === 'Compras' ? montarLigacaoCompra(m, id) : null;
   m.onSalvar = async () => {
     const o = {};
     for (const f of c.campos){
@@ -1082,31 +1839,235 @@ function formCadastro(tab, id, preset = {}){
       o[f.k] = v;
     }
     if (o.nome && S[tab].some(x => x.nome && x.nome.toLowerCase() === String(o.nome).toLowerCase() && String(x.id) !== String(id))) throw new Error('Já existe um cadastro com esse nome.');
-    await salvar(tab, o, id);
-    if (tab === 'Compras') return toast(await aplicarPrecoCompra(o, id));
+    if (tab === 'Compras' && lig && lig.visivel() && lig.marcadas.size){
+      const i = ingPorNome(o.ingrediente);
+      if (!i || !baseCompra(o, i) || !(num(o.valor) > 0)) throw new Error('Para ligar a compra a uma fornada, informe a quantidade e uma unidade que combine com o ingrediente.');
+    }
+    const novo = await salvar(tab, o, id);
+    if (tab === 'Compras') return toast(await posCompra(o, id || novo.id, lig));
     toast('Salvo');
   };
   m.onExcluir = async () => { await excluir(tab, id); toast('Excluído'); };
 }
 
-/* ============ COMPRA ATUALIZA O PREÇO DO INGREDIENTE ============ */
+/* ============ DEPOIS DE SALVAR UMA COMPRA ============ */
+async function posCompra(c, cid, lig){
+  const partes = [await aplicarPrecoCompra(c, cid)];
+  const i = ingPorNome(c.ingrediente);
+  if (i && lig && lig.visivel()){
+    let lotes = 0, vendas = 0;
+    for (const f of fornadasDoIngrediente(i.nome)){
+      const fid = String(f.id), atual = lig.ligadaA(f, i.nome), quer = lig.marcadas.has(fid);
+      if (quer && atual !== String(cid)){ vendas += await trocarCompraNaFornada(loteDe(fid), i.nome, cid); lotes++; }
+      else if (!quer && atual === String(cid)){ vendas += await trocarCompraNaFornada(loteDe(fid), i.nome, ''); lotes++; }
+    }
+    if (lotes) partes.push(`${lotes} ${lotes === 1 ? 'lote recalculado' : 'lotes recalculados'}${vendas ? ` e ${vendas} ${vendas === 1 ? 'venda' : 'vendas'}` : ''}`);
+  }
+  if (i && (!c.tipo || c.tipo === 'Ingrediente')){
+    const e = estoqueDe(i.nome), it = compraNoEstoque(i.nome, cid), u = i.unidade || 'g';
+    if (it) partes.push(it.status === 'Em uso' ? 'Esta compra está em uso'
+      : it.status === 'Na fila' ? `Na fila; em uso continua a de ${dataBR(e.emUso.c.data)} (resta ${fmtQ(Math.max(e.emUso.resta, 0), u)})`
+      : 'Esta compra já foi consumida pelas fornadas ligadas');
+  }
+  return partes.filter(Boolean).join('. ');
+}
+
+/* Guarda no cadastro o último preço pago (usado quando não há compra em estoque) */
 async function aplicarPrecoCompra(c, id){
   const nome = String(c.ingrediente || '').trim().toLowerCase();
   const i = S.Ingredientes.find(x => String(x.nome).toLowerCase() === nome);
-  if (!i) return 'Compra salva. Esse item não está nos ingredientes, então nenhum preço mudou.';
+  if (!i) return 'Compra salva. Esse item não está nos ingredientes, então não entra no estoque';
+  if (c.tipo && c.tipo !== 'Ingrediente') return 'Compra salva';
   const maisNova = S.Compras.some(x => String(x.id) !== String(id) && String(x.ingrediente).trim().toLowerCase() === nome && String(x.data) > String(c.data));
-  if (maisNova) return `Compra salva. Já existe uma compra mais recente de ${i.nome}; o preço continua o daquela.`;
+  if (maisNova) return `Compra de ${i.nome} salva`;
   const q = num(c.quantidade), emb = num(i.qtd_embalagem), u = c.unidade || 'un', iu = i.unidade || 'g';
-  if (!(q > 0) || !(num(c.valor) > 0) || !emb) return `Compra salva. Informe a quantidade para atualizar o preço de ${i.nome}.`;
+  if (!(q > 0) || !(num(c.valor) > 0) || !emb) return `Compra salva. Informe a quantidade para ela entrar no estoque de ${i.nome}`;
   const fator = ({g:{g:1, kg:1000}, ml:{ml:1, L:1000}, un:{un:1}})[iu] || {};
   let base = 0;
   if (u === 'pacote' || (u === 'un' && iu !== 'un')) base = q * emb;
   else if (fator[u]) base = q * fator[u];
-  if (!base) return `Compra salva. A unidade "${u}" não combina com ${iu}, então o preço de ${i.nome} não mudou.`;
+  if (!base) return `Compra salva. A unidade "${u}" não combina com ${iu}, então ela não entra no estoque de ${i.nome}`;
   const novo = r2(num(c.valor) / base * emb), antigo = num(i.preco_embalagem);
-  if (novo === r2(antigo)) return `Compra salva. ${i.nome} continua a ${brl(novo)}.`;
-  await salvar('Ingredientes', {preco_embalagem:novo, mercado:c.mercado || i.mercado || ''}, i.id);
-  return `${i.nome}: ${brl(antigo)} → ${brl(novo)} por ${emb} ${iu}`;
+  if (novo !== r2(antigo)) await salvar('Ingredientes', {preco_embalagem:novo, mercado:c.mercado || i.mercado || ''}, i.id);
+  return `Compra de ${i.nome} salva (${brl(novo)} por ${emb} ${iu})`;
+}
+
+
+/* ============ ESTOQUE POR INGREDIENTE ============
+   Cada compra de ingrediente (com quantidade) é um estoque: Em uso, Na fila ou Acabou.
+   Cada fornada grava em "compras_usadas" qual compra usou de cada ingrediente, quanto e a que preço. */
+let EST = null;
+const mesmoNome = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+const ingPorNome = nome => S.Ingredientes.find(i => mesmoNome(i.nome, nome));
+const precoCadastro = i => i && num(i.qtd_embalagem) ? num(i.preco_embalagem) / num(i.qtd_embalagem) : 0;
+const fmtQ = (v, u) => (Math.round(num(v) * 10) / 10).toLocaleString('pt-BR') + ' ' + (u || '');
+function baseCompra(c, i){
+  const q = num(c.quantidade), emb = num(i.qtd_embalagem), u = c.unidade || 'un', iu = i.unidade || 'g';
+  if (!(q > 0)) return 0;
+  if (u === 'pacote' || (u === 'un' && iu !== 'un')) return emb ? q * emb : 0;
+  const fator = ({g:{g:1, kg:1000}, ml:{ml:1, L:1000}, un:{un:1}})[iu] || {};
+  return fator[u] ? q * fator[u] : 0;
+}
+const usadasDe = f => { try { const o = JSON.parse(f && f.compras_usadas || '{}'); return o && typeof o === 'object' ? o : {}; } catch(e){ return {}; } };
+function estoqueTudo(){
+  if (EST) return EST;
+  const uso = {}, onde = {};
+  S.Fornadas.forEach(f => Object.values(usadasDe(f)).forEach(x => { if (!x || !x.c) return; uso[x.c] = (uso[x.c] || 0) + num(x.q); (onde[x.c] ||= []).push(f); }));
+  return EST = {uso, onde, por:{}};
+}
+function estoqueDe(nome){
+  const T = estoqueTudo(), k = String(nome || '').trim().toLowerCase();
+  if (T.por[k]) return T.por[k];
+  const i = ingPorNome(nome);
+  if (!i) return T.por[k] = {i:null, itens:[], emUso:null, semQtd:[]};
+  const itens = [], semQtd = [];
+  S.Compras.filter(c => mesmoNome(c.ingrediente, i.nome) && (!c.tipo || c.tipo === 'Ingrediente')).forEach(c => {
+    const base = baseCompra(c, i);
+    if (!base || !(num(c.valor) > 0)){ semQtd.push(c); return; }
+    const usado = (T.uso[String(c.id)] || 0) + num(c.consumo_ajuste);
+    itens.push({c, base, pu:num(c.valor) / base, usado, resta:base - usado, fornadas:T.onde[String(c.id)] || []});
+  });
+  itens.sort((a,b) => String(a.c.data).localeCompare(String(b.c.data)) || String(a.c.id).localeCompare(String(b.c.id)));
+  itens.forEach(x => x.acabou = x.c.status_manual === 'Acabou' || (x.resta <= 0.0001 && x.c.status_manual !== 'Em uso'));
+  const manual = itens.filter(x => x.c.status_manual === 'Em uso');
+  const emUso = manual.length ? manual[manual.length - 1] : itens.find(x => !x.acabou) || null;
+  itens.forEach(x => x.status = x === emUso ? 'Em uso' : x.acabou ? 'Acabou' : 'Na fila');
+  return T.por[k] = {i, itens, emUso, semQtd};
+}
+const compraNoEstoque = (ing, cid) => cid ? estoqueDe(ing).itens.find(y => String(y.c.id) === String(cid)) || null : null;
+function escolhasPadrao(rec){ const e = {}; itensDe(rec).forEach(x => { const s = estoqueDe(x.ingrediente); e[x.ingrediente] = s.emUso ? String(s.emUso.c.id) : ''; }); return e; }
+function emUsoMapa(rec){ const e = {}; itensDe(rec).forEach(x => { const s = estoqueDe(x.ingrediente); e[x.ingrediente] = s.emUso ? String(s.emUso.c.id) : ''; }); return e; }
+async function recalcVendasLote(id){
+  const f = loteDe(id); if (!f) return 0; let n = 0;
+  for (const v of S.Vendas.filter(x => String(x.lote) === String(id))){
+    const c = calcVenda({...v, rendimento:num(f.rendimento_real)});
+    if (c.custo_preparo !== r2(num(v.custo_preparo)) || c.lucro_disponivel !== r2(num(v.lucro_disponivel))){ await salvar('Vendas', {...c, rendimento:num(f.rendimento_real)}, v.id); n++; }
+  }
+  return n;
+}
+/* Depois de uma fornada consumir estoque: libera a compra marcada à mão que zerou e avisa as trocas */
+async function posConsumo(usadasJSON, antes){
+  let us = {}; try { us = JSON.parse(usadasJSON || '{}'); } catch(e){}
+  const avisos = [];
+  for (const [ing, x] of Object.entries(us)){
+    if (!x || !x.c) continue;
+    const it = compraNoEstoque(ing, x.c);
+    if (it && it.c.status_manual === 'Em uso' && it.resta <= 0.0001) await salvar('Compras', {status_manual:''}, it.c.id);
+    const e = estoqueDe(ing), novo = e.emUso ? String(e.emUso.c.id) : '';
+    if (antes && antes[ing] && antes[ing] !== novo)
+      avisos.push(e.emUso ? `${ing}: a compra anterior acabou; agora está em uso a de ${dataBR(e.emUso.c.data)}` : `${ing}: o estoque acabou, registre uma compra`);
+  }
+  return avisos;
+}
+/* Liga (ou desliga) uma compra a uma fornada já registrada e recalcula o lote e as vendas dele */
+async function trocarCompraNaFornada(f, ingNome, compraId){
+  const item = itensDe(f.receita).find(x => mesmoNome(x.ingrediente, ingNome)); if (!item) return 0;
+  const us = usadasDe(f);
+  if (!Object.keys(us).length) itensDe(f.receita).forEach(x => us[x.ingrediente] = {c:'', q:num(x.quantidade), p:Math.round(precoCadastro(ingrediente(x.ingrediente)) * 1e6) / 1e6});
+  const it = compraNoEstoque(item.ingrediente, compraId);
+  us[item.ingrediente] = {c: it ? String(it.c.id) : '', q:num(item.quantidade), p:Math.round((it ? it.pu : precoCadastro(ingrediente(item.ingrediente))) * 1e6) / 1e6};
+  const ci = Object.values(us).reduce((s, x) => s + num(x.q) * num(x.p), 0);
+  const ca = f.custo_adicional !== '' && f.custo_adicional != null ? num(f.custo_adicional) : adicional('Por fornada');
+  const rend = num(f.rendimento_real) || rendPadrao(f.receita);
+  await salvar('Fornadas', {compras_usadas:JSON.stringify(us), custo_ingredientes:r2(ci), custo_adicional:r2(ca), custo_total:r2(ci + ca),
+    custo_unitario:Math.round((ci + ca) / rend * 10000) / 10000, lote:num(f.lote) || proximoLote()}, f.id);
+  return recalcVendasLote(f.id);
+}
+function comprasDoLoteTxt(f){
+  const us = usadasDe(f), partes = Object.entries(us).filter(([, x]) => x && x.c).map(([ing, x]) => { const c = S.Compras.find(k => String(k.id) === String(x.c)); return c ? `${esc(ing)} (${dataBR(c.data)})` : ''; }).filter(Boolean);
+  return partes.length ? `<p class="muted" style="font-size:13px;margin:8px 0 0">Compras usadas: ${partes.join(' · ')}</p>` : '';
+}
+
+/* ============ TELA: ESTOQUE DE UM INGREDIENTE ============ */
+function telaEstoque(nome){
+  const e = estoqueDe(nome);
+  if (!e.i) return `<div class="head"><div><a href="#cad/Ingredientes" class="muted" style="text-decoration:none;font-weight:600">‹ Ingredientes</a><h1>Ingrediente não encontrado</h1></div></div>`;
+  const i = e.i, u = i.unidade || 'g', emb = num(i.qtd_embalagem) || 1;
+  const em = e.itens.filter(x => x.status === 'Em uso'), fila = e.itens.filter(x => x.status === 'Na fila'),
+        acab = e.itens.filter(x => x.status === 'Acabou').reverse();
+  const card = x => {
+    const p = Math.min(Math.max(x.usado / x.base, 0), 1);
+    const lotes = x.fornadas.map(f => nomeLote(f)).join(', ');
+    const bt = [];
+    if (x.status === 'Em uso') bt.push(`<button class="btn" data-est="acabou" data-id="${esc(x.c.id)}">Marcar como acabou</button>`);
+    if (x.status === 'Na fila') bt.push(`<button class="btn" data-est="usar" data-id="${esc(x.c.id)}">Usar agora</button>`);
+    if (x.status === 'Acabou') bt.push(`<button class="btn" data-est="usar" data-id="${esc(x.c.id)}">Voltar a usar</button>`);
+    bt.push(`<button class="btn" data-est="ajustar" data-id="${esc(x.c.id)}">Corrigir quanto resta</button>`);
+    return `<section class="panel"><div class="grupo-top"><div><b>Compra de ${dataBR(x.c.data)}</b>
+      <div class="muted" style="font-size:13px">${[x.c.mercado, fmtQ(x.base, u), brl(x.c.valor) + (Math.abs(x.base - emb) > 0.01 ? ` (${brl(x.pu * emb)} por ${fmtQ(emb, u)})` : '')].filter(Boolean).map(esc).join(' · ')}</div></div>
+      <span class="badge ${x.status === 'Em uso' ? 'b-ok' : x.status === 'Na fila' ? 'b-warn' : ''}">${x.status}</span></div>
+      <div class="lote-barra" style="margin-top:12px" aria-hidden="true"><div class="v" style="width:${(p * 100).toFixed(1)}%;background:var(--caramelo)"></div></div>
+      <div style="font-size:14px">Usado <b class="num">${fmtQ(Math.max(x.usado, 0), u)}</b> de ${fmtQ(x.base, u)} · resta <b class="num">${fmtQ(Math.max(x.resta, 0), u)}</b></div>
+      ${lotes ? `<div class="muted" style="font-size:13px;margin-top:4px">Usada em: ${esc(lotes)}</div>` : ''}
+      ${num(x.c.consumo_ajuste) ? `<div class="muted" style="font-size:13px;margin-top:4px">Inclui ${fmtQ(x.c.consumo_ajuste, u)} de correção manual</div>` : ''}
+      <div class="acoes">${bt.join('')}</div></section>`;
+  };
+  const sub = e.emUso ? `Em uso: compra de ${dataBR(e.emUso.c.data)} · ${brl(e.emUso.pu * emb)} por ${fmtQ(emb, u)} · resta ${fmtQ(Math.max(e.emUso.resta, 0), u)}`
+    : `Nenhuma compra em uso. As fornadas usam o último preço do cadastro (${brl(num(i.preco_embalagem))} por ${fmtQ(emb, u)}).`;
+  const bloco = (t, xs) => xs.length ? `<div class="secao">${t}</div><div class="grid g2">${xs.map(card).join('')}</div>` : '';
+  return `<div class="head"><div><a href="#cad/Ingredientes" class="muted" style="text-decoration:none;font-weight:600">‹ Ingredientes</a><h1>${esc(i.nome)}</h1><p class="sub">${sub}</p></div>
+    <button class="btn pri" data-novacompra="${esc(i.nome)}">${I.mais1} Registrar compra</button></div>
+    ${e.itens.length ? bloco('Em uso', em) + bloco('Na fila', fila) + bloco('Já acabaram', acab)
+      : `<section class="panel vazio"><b>Nenhuma compra no estoque</b>Registre as compras de ${esc(i.nome)} com a quantidade para o app controlar o estoque.</section>`}
+    ${e.semQtd.length ? `<p class="muted" style="font-size:13px;margin-top:14px">${e.semQtd.length} ${e.semQtd.length === 1 ? 'compra está' : 'compras estão'} sem quantidade e não ${e.semQtd.length === 1 ? 'entra' : 'entram'} no estoque. Abra em <a href="#cad/Compras">Compras</a> e informe a quantidade.</p>` : ''}`;
+}
+async function acaoEstoque(acao, cid){
+  const c = S.Compras.find(x => String(x.id) === String(cid)); if (!c) return;
+  const e = estoqueDe(c.ingrediente), it = compraNoEstoque(c.ingrediente, cid), u = e.i?.unidade || 'g';
+  if (acao === 'acabou'){ await salvar('Compras', {status_manual:'Acabou'}, cid); EST = null;
+    const n = estoqueDe(c.ingrediente).emUso; toast(n ? `Agora em uso: compra de ${dataBR(n.c.data)}` : `${e.i.nome}: nenhuma compra na fila`); return rota(); }
+  if (acao === 'usar'){
+    for (const x of e.itens) if (x.c.status_manual === 'Em uso' && String(x.c.id) !== String(cid)) await salvar('Compras', {status_manual:''}, x.c.id);
+    await salvar('Compras', {status_manual:'Em uso'}, cid); toast(`Compra de ${dataBR(c.data)} em uso`); return rota();
+  }
+  if (acao === 'ajustar' && it){
+    const m = abrirModal('Corrigir quanto resta', `<p class="muted" style="margin:0 0 12px">Compra de ${dataBR(c.data)} · ${fmtQ(it.base, u)}. Pelas fornadas registradas, restam ${fmtQ(Math.max(it.resta, 0), u)}.</p>
+      <div class="campo"><label for="e_resta">Quanto ainda resta de verdade (${u})</label><input id="e_resta" type="number" step="any" inputmode="decimal" value="${Math.max(Math.round(it.resta * 10) / 10, 0)}"></div>`, {salvar:'Salvar'});
+    m.onSalvar = async () => {
+      const v = m.querySelector('#e_resta').value; if (v === '') throw new Error('Informe quanto resta.');
+      const resta = Math.min(Math.max(num(v), 0), it.base), usoForn = it.usado - num(c.consumo_ajuste);
+      const d = {consumo_ajuste:r2(it.base - usoForn - resta)};
+      if (c.status_manual === 'Acabou' && resta > 0) d.status_manual = '';
+      if (c.status_manual === 'Em uso' && resta <= 0) d.status_manual = '';
+      await salvar('Compras', d, cid); toast(resta > 0 ? `Resta ${fmtQ(resta, u)}` : 'Compra marcada como acabada');
+    };
+  }
+}
+
+/* ---- Campo "Usada em fornadas já registradas" no formulário de compra ---- */
+function fornadasDoIngrediente(ing){
+  return S.Fornadas.filter(f => itensDe(f.receita).some(x => mesmoNome(x.ingrediente, ing)))
+    .sort((a,b) => String(b.data).localeCompare(String(a.data)) || num(b.lote) - num(a.lote));
+}
+function montarLigacaoCompra(m, compraId){
+  const caixa = document.createElement('div'); caixa.className = 'campo'; caixa.id = 'c_fornbox';
+  const obs = m.querySelector('#c_observacao')?.closest('.campo');
+  obs ? obs.before(caixa) : m.querySelector('.m-body').appendChild(caixa);
+  const marcadas = new Set();
+  const ligadaA = (f, ing) => { const it = itensDe(f.receita).find(x => mesmoNome(x.ingrediente, ing)); const x = it && usadasDe(f)[it.ingrediente]; return x && x.c ? String(x.c) : ''; };
+  let primeira = true;
+  const desenhar = () => {
+    const ing = m.querySelector('#c_ingrediente').value.trim(), tipo = m.querySelector('#c_tipo')?.value || '';
+    const i = ingPorNome(ing);
+    if (!i || (tipo && tipo !== 'Ingrediente')){ caixa.style.display = 'none'; return; }
+    const fs = fornadasDoIngrediente(i.nome);
+    if (primeira && compraId) fs.forEach(f => { if (ligadaA(f, i.nome) === String(compraId)) marcadas.add(String(f.id)); });
+    primeira = false;
+    const lista = fs.filter((f, k) => k < 12 || marcadas.has(String(f.id)));
+    caixa.style.display = lista.length ? '' : 'none';
+    caixa.innerHTML = `<label>Usada em fornadas já registradas</label>
+      <small class="muted" style="display:block;margin:-2px 0 8px">Marque se esta compra foi usada em lotes que você já registrou. O custo deles e das vendas ligadas é recalculado.</small>
+      <div class="ligar-lista">${lista.map(f => { const atual = ligadaA(f, i.nome), c = atual && S.Compras.find(k => String(k.id) === atual);
+        const det = !Object.keys(usadasDe(f)).length;
+        return `<label class="check" style="margin:0 0 8px"><input type="checkbox" data-lf="${esc(f.id)}" ${marcadas.has(String(f.id)) ? 'checked' : ''}>
+          <span>${nomeLote(f)} · ${esc(f.receita)} · ${dataBR(f.data)}<small class="muted" style="display:block;font-size:12.5px">${atual === String(compraId) ? 'Ligada a esta compra' : c ? `Hoje usa a compra de ${dataBR(c.data)}` : 'Sem compra ligada'}${det ? ' · os outros ingredientes serão recalculados com o último preço do cadastro' : ''}</small></span></label>`; }).join('')}</div>`;
+    caixa.querySelectorAll('[data-lf]').forEach(cb => cb.onchange = () => { cb.checked ? marcadas.add(cb.dataset.lf) : marcadas.delete(cb.dataset.lf); });
+  };
+  m.querySelector('#c_ingrediente').addEventListener('input', desenhar);
+  m.querySelector('#c_ingrediente').addEventListener('change', desenhar);
+  m.querySelector('#c_tipo')?.addEventListener('change', desenhar);
+  desenhar();
+  return { marcadas, ligadaA, visivel: () => caixa.style.display !== 'none' };
 }
 
 /* ============ FORNADA = LOTE ============ */
@@ -1119,34 +2080,54 @@ function formFornada(id){
       <div class="campo"><label for="f_rec">Receita</label><select id="f_rec">${nomes.map(n => `<option ${n === f.receita ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div></div>
     <div class="duas"><div class="campo"><label for="f_rend">Unidades produzidas</label><input id="f_rend" type="number" inputmode="numeric" value="${esc(f.rendimento_real ?? '')}" placeholder="${rendPadrao(f.receita)}"></div>
       <div class="campo"><label for="f_perd">Perdas (unidades)</label><input id="f_perd" type="number" inputmode="numeric" value="${esc(f.perdas ?? '')}" placeholder="0"></div></div>
-    ${id ? `<label class="check"><input type="checkbox" id="f_recalc"> Recalcular o custo com os preços de hoje</label>` : ''}
+    <div class="campo"><label>Ingredientes desta fornada</label><div id="f_ings" class="ing-lista"></div>
+      <small class="muted">Vem marcada a compra em uso de cada ingrediente. Troque só se esta fornada usou outra.</small></div>
+    ${id ? `<label class="check"><input type="checkbox" id="f_recalc"> Recalcular o custo com as compras marcadas acima</label>` : ''}
     <div class="campo"><label for="f_obs">Observação</label><input id="f_obs" value="${esc(f.observacao || '')}"></div>
     <div class="previa num" id="f_prev"></div>`, {salvar:'Salvar fornada', excluir:!!id});
   const q = s => m.querySelector(s);
+  const guardadas = usadasDe(f);
+  let escolha = id && Object.keys(guardadas).length ? Object.fromEntries(Object.entries(guardadas).map(([k, x]) => [k, x && x.c ? String(x.c) : ''])) : escolhasPadrao(f.receita);
+  let mudou = false;
+  const desenharIngs = () => {
+    const rec = q('#f_rec').value, its = itensDe(rec);
+    if (!its.length){ q('#f_ings').innerHTML = `<div class="muted" style="font-size:14px">Esta receita não tem ingredientes cadastrados. <a href="#itens/${encodeURIComponent(rec)}">Cadastrar</a></div>`; return; }
+    q('#f_ings').innerHTML = its.map(x => {
+      const e = estoqueDe(x.ingrediente), i = e.i || ingrediente(x.ingrediente), u = i?.unidade || 'g', emb = num(i?.qtd_embalagem) || 1, sel = String(escolha[x.ingrediente] || '');
+      const op = it => `<option value="${esc(it.c.id)}" ${String(it.c.id) === sel ? 'selected' : ''}>${dataBR(it.c.data)} · ${brl(it.pu * emb)} · ${it.status === 'Acabou' ? 'acabou' : it.status.toLowerCase() + ', resta ' + fmtQ(Math.max(it.resta, 0), u)}</option>`;
+      const abertos = e.itens.filter(it => it.status !== 'Acabou'), fechados = e.itens.filter(it => it.status === 'Acabou').reverse();
+      const it = compraNoEstoque(x.ingrediente, sel), p = it ? it.pu : precoCadastro(i);
+      return `<div class="ing-row"><div class="ing-nome"><b>${esc(x.ingrediente)}</b><small>${fmtQ(x.quantidade, u)} · ${brl(num(x.quantidade) * p)}</small></div>
+        <select data-ing="${esc(x.ingrediente)}" aria-label="Compra usada de ${esc(x.ingrediente)}">${abertos.map(op).join('')}
+          ${fechados.length ? `<optgroup label="Já acabaram">${fechados.map(op).join('')}</optgroup>` : ''}
+          <option value="" ${sel ? '' : 'selected'}>Sem compra (cadastro: ${brl(precoCadastro(i) * emb)})</option></select></div>`;
+    }).join('');
+    q('#f_ings').querySelectorAll('[data-ing]').forEach(s => s.onchange = () => { escolha[s.dataset.ing] = s.value; mudou = true; desenharIngs(); prev(); });
+  };
   const ler = () => {
     const rec = q('#f_rec').value, rend = num(q('#f_rend').value) || rendPadrao(rec);
-    const atual = !id || (q('#f_recalc') && q('#f_recalc').checked) || rec !== f.receita || !num(f.custo_total);
-    const c = atual ? custoLote(rec, rend) : { custo_ingredientes:num(f.custo_ingredientes), custo_adicional:num(f.custo_adicional),
+    const atual = !id || (q('#f_recalc') && q('#f_recalc').checked) || rec !== f.receita || !num(f.custo_total) || mudou;
+    const c = atual ? custoLote(rec, rend, escolha) : { custo_ingredientes:num(f.custo_ingredientes), custo_adicional:num(f.custo_adicional),
       custo_total:num(f.custo_total), custo_unitario: Math.round(num(f.custo_total) / rend * 10000) / 10000 };
     return { atual, d:{ lote:num(f.lote) || proximoLote(), data:q('#f_data').value, receita:rec, rendimento_real:rend, perdas:num(q('#f_perd').value), observacao:q('#f_obs').value.trim(), ...c } };
   };
   const prev = () => { const {atual, d} = ler();
     q('#f_prev').innerHTML = `<span>Ingredientes</span><b>${brl(d.custo_ingredientes)}</b><span>Custos por fornada</span><b>${brl(d.custo_adicional)}</b>
       <span>Custo do lote</span><b>${brl(d.custo_total)}</b><div class="tot"><span>Custo por unidade (${d.rendimento_real} un)</span><span>${brl(d.custo_unitario)}</span></div>
-      <div class="muted" style="grid-column:1/-1;margin-top:4px">${atual ? 'Com os preços de hoje dos ingredientes.' : 'Com os preços gravados quando o lote foi criado.'}</div>`; };
-  ['#f_rec','#f_rend','#f_perd','#f_recalc'].forEach(s => { const el = q(s); if (el) el.oninput = el.onchange = prev; });
-  prev();
+      <div class="muted" style="grid-column:1/-1;margin-top:4px">${atual ? 'Com os preços das compras marcadas acima.' : 'Com os preços gravados quando o lote foi criado.'}</div>`; };
+  ['#f_rend','#f_perd','#f_recalc'].forEach(s => { const el = q(s); if (el) el.oninput = el.onchange = prev; });
+  q('#f_rec').onchange = () => { escolha = escolhasPadrao(q('#f_rec').value); desenharIngs(); prev(); };
+  desenharIngs(); prev();
   m.onSalvar = async () => {
     const {d} = ler();
     if (!d.data) throw new Error('Informe a data.');
     if (d.perdas > d.rendimento_real) throw new Error('As perdas não podem passar das unidades produzidas.');
-    await salvar('Fornadas', d, id);
-    let n = 0;
-    if (id) for (const v of S.Vendas.filter(x => String(x.lote) === String(id))){
-      const c = calcVenda({...v, rendimento:d.rendimento_real});
-      if (c.custo_preparo !== r2(num(v.custo_preparo)) || c.lucro_disponivel !== r2(num(v.lucro_disponivel))){ await salvar('Vendas', {...c, rendimento:d.rendimento_real}, v.id); n++; }
-    }
-    toast(id ? (n ? `Lote salvo e ${n} ${n === 1 ? 'venda recalculada' : 'vendas recalculadas'}` : 'Lote salvo') : `Lote ${d.lote} criado: ${brl(d.custo_unitario)} por unidade`);
+    const antes = emUsoMapa(d.receita);
+    const r = await salvar('Fornadas', d, id);
+    const n = id ? await recalcVendasLote(id) : 0;
+    const avisos = d.compras_usadas ? await posConsumo(d.compras_usadas, antes) : [];
+    const msg = id ? (n ? `Lote salvo e ${n} ${n === 1 ? 'venda recalculada' : 'vendas recalculadas'}` : 'Lote salvo') : `Lote ${d.lote} criado: ${brl(d.custo_unitario)} por unidade`;
+    toast([msg, ...avisos].join('. '));
   };
   m.onExcluir = async () => {
     const n = S.Vendas.filter(x => String(x.lote) === String(id)).length;
@@ -1172,7 +2153,7 @@ function organizarAntigos(){
   const rot = f => num(f.lote) ? nomeLote(f) : `Fornada de ${dataBR(f.data)}`;
   const m = abrirModal('Organizar registros antigos', `
     ${fornadas.length ? `<div class="secao" style="margin:0 0 6px">Fornadas que vão receber número e custo</div>
-      <table><tbody>${fornadas.map(f => { const c = num(f.custo_total) ? null : custoLote(f.receita, f.rendimento_real);
+      <table><tbody>${fornadas.map(f => { const c = num(f.custo_total) ? null : custoLote(f.receita, f.rendimento_real, {});
         return `<tr><td>${dataBR(f.data)} · ${esc(f.receita)}</td><td class="r num">${c ? brl(c.custo_total) + ' <span class="muted">(preços de hoje)</span>' : 'custo mantido'}</td></tr>`; }).join('')}</tbody></table>` : ''}
     ${plano.length ? `<div class="secao" style="margin:16px 0 6px">Vendas que vão ser ligadas</div>
       <table><tbody>${Object.entries(porLote).map(([fid, n]) => { const f = loteDe(fid);
@@ -1188,7 +2169,7 @@ function organizarAntigos(){
     for (const f of fornadas){
       const rend = num(f.rendimento_real) || rendPadrao(f.receita);
       const d = { lote: num(f.lote) || proximoLote(), rendimento_real: rend };
-      Object.assign(d, num(f.custo_total) ? { custo_unitario: Math.round(num(f.custo_total) / rend * 10000) / 10000 } : custoLote(f.receita, rend));
+      Object.assign(d, num(f.custo_total) ? { custo_unitario: Math.round(num(f.custo_total) / rend * 10000) / 10000 } : custoLote(f.receita, rend, {}));
       await salvar('Fornadas', d, f.id); passo();
     }
     const recalc = m.querySelector('#o_recalc')?.checked;
@@ -1227,10 +2208,11 @@ function telaLotes(){
         ${r.perd ? linha(`− Perdas (${r.perd} un)`, brl(r.custoPerdas)) : ''}
         <tr><td><b>Lucro do lote</b></td><td class="r num ${r.lucro < 0 ? 'neg' : ''}"><b>${brl(r.lucro)}</b></td></tr></tbody></table>
       ${r.rest > 0 ? `<p class="muted" style="font-size:13px;margin:8px 0 0">${r.rest} em estoque, que custaram ${brl(r.estoque)}. O lucro cresce conforme forem vendidas.</p>` : ''}
+      ${comprasDoLoteTxt(f)}
       <div class="acoes"><button class="btn" data-edit="Fornadas" data-id="${esc(f.id)}">Editar lote</button></div></section>`;
   };
   return `<div class="head"><div><a href="#mais" class="muted" style="text-decoration:none;font-weight:600">‹ Mais</a><h1>Lotes</h1>
-    <p class="sub">Cada fornada é um lote, com o custo dos ingredientes do dia em que foi feita</p></div>
+    <p class="sub">Cada fornada é um lote, com o custo das compras de ingredientes que ela usou</p></div>
     <button class="btn pri" data-novo="Fornadas">${I.mais1} Nova fornada</button></div>
   <div class="filtros"><div class="chips">${chip('todos','Todos')}${chip('abertos','Em venda')}${chip('encerrados','Encerrados')}</div></div>
   ${semLote || semCusto ? `<section class="panel" style="margin-bottom:14px"><div class="grupo-top"><div><b>Registros de antes dos lotes</b>
@@ -1289,6 +2271,8 @@ function ligar(base){
   v.querySelectorAll('[data-fs]').forEach(b => b.onclick = () => { S.filtroStatus = b.dataset.fs; rota(); });
   v.querySelectorAll('[data-flote]').forEach(b => b.onclick = () => { S.filtroLote = b.dataset.flote; rota(); });
   v.querySelectorAll('[data-ligar]').forEach(b => b.onclick = () => organizarAntigos());
+  v.querySelectorAll('[data-est]').forEach(b => b.onclick = async () => { b.disabled = true; try{ await acaoEstoque(b.dataset.est, b.dataset.id); }catch(e){ toast(e.message, true); b.disabled = false; } });
+  v.querySelectorAll('[data-novacompra]').forEach(b => b.onclick = () => formCadastro('Compras', null, {ingrediente:b.dataset.novacompra, data:hoje(), unidade:'un', tipo:'Ingrediente'}));
   const fl = v.querySelector('[data-fl]'); if (fl) fl.onchange = () => { S.filtroLocal = fl.value; rota(); };
   v.querySelectorAll('[data-novo]').forEach(b => b.onclick = () => formCadastro(b.dataset.novo));
   v.querySelectorAll('[data-edit]').forEach(b => { b.onclick = () => formCadastro(b.dataset.edit, b.dataset.id);
