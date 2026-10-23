@@ -2242,10 +2242,14 @@ function montarLigacaoCompra(m, compraId){
 function formFornada(id){
   if (!S.Receitas.length){ toast('Cadastre ao menos uma receita antes.', true); location.hash = '#cad/Receitas'; return; }
   const f = id ? {...loteDe(id)} : {data:hoje(), receita:S.Receitas.filter(ativo)[0]?.nome || S.Receitas[0].nome};
+  const recAtual = receita(f.receita);
+  if (recAtual) f.receita = recAtual.nome;
   const nomes = S.Receitas.filter(r => ativo(r) || r.nome === f.receita).map(r => r.nome);
+  if (id && !recAtual) nomes.unshift(f.receita);
   const m = abrirModal(id ? 'Editar ' + rotLote(f) : 'Nova fornada', `
     <div class="duas"><div class="campo"><label for="f_data">Data</label><input type="date" id="f_data" value="${esc(f.data)}"></div>
-      <div class="campo"><label for="f_rec">Receita</label><select id="f_rec">${nomes.map(n => `<option ${n === f.receita ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div></div>
+      <div class="campo"><label for="f_rec">Receita</label><select id="f_rec">${nomes.map(n => `<option value="${esc(n)}" ${n === f.receita ? 'selected' : ''}>${esc(n)}${receita(n) ? '' : ' (não existe no cadastro)'}</option>`).join('')}</select></div></div>
+    ${id && !recAtual ? `<p class="alerta" style="margin:-4px 0 12px">A receita “${esc(f.receita)}” não existe no cadastro. Escolha a receita certa acima.</p>` : ''}
     <div class="duas"><div class="campo"><label for="f_rend">Unidades produzidas</label><input id="f_rend" type="number" inputmode="numeric" value="${esc(f.rendimento_real ?? '')}" placeholder="${rendPadrao(f.receita)}"></div>
       <div class="campo"><label for="f_perd">Perdas (unidades)</label><input id="f_perd" type="number" inputmode="numeric" value="${esc(f.perdas ?? '')}" placeholder="0"></div></div>
     <div class="campo"><label>Ingredientes desta fornada</label><div id="f_ings" class="ing-lista"></div>
@@ -2308,9 +2312,10 @@ function formFornada(id){
 function planoAntigos(){
   const fornadas = S.Fornadas.filter(f => !num(f.lote) || !num(f.custo_total)).sort((a,b) => String(a.data).localeCompare(String(b.data)));
   const plano = [], sobra = [];
+  const maisRecente = fs => fs.sort((a,b) => String(b.data).localeCompare(String(a.data)) || num(b.lote) - num(a.lote))[0];
   S.Vendas.filter(v => !loteDe(v.lote)).forEach(v => {
-    const f = S.Fornadas.filter(f => f.receita === v.receita && String(f.data) <= String(v.data))
-      .sort((a,b) => String(b.data).localeCompare(String(a.data)) || num(b.lote) - num(a.lote))[0];
+    const antes = S.Fornadas.filter(f => String(f.data) <= String(v.data));
+    const f = maisRecente(antes.filter(f => chave(f.receita) === chave(v.receita))) || maisRecente(antes.filter(f => mesmoSabor(saborLote(f), saborDe(v.receita))));
     f ? plano.push({v, f}) : sobra.push(v);
   });
   return {fornadas, plano, sobra};
@@ -2350,6 +2355,32 @@ function organizarAntigos(){
   };
 }
 
+/* ---- Fornadas com receita que não existe no cadastro ---- */
+function receitaProvavel(f){
+  const k = chave(f.receita).replace(/^lote\s*\d+\s*[-–]?\s*/, '').replace(/[\s\-–]*\d+$/, '');
+  const cands = S.Receitas.filter(r => chave(r.nome) === k || chave(saborDe(r.nome)) === k || chave(r.nome).startsWith(k));
+  if (!k || !cands.length) return '';
+  const rend = num(f.rendimento_real);
+  const r = cands.find(r => ativo(r) && num(r.rendimento_padrao) === rend) || cands.find(r => num(r.rendimento_padrao) === rend) || cands.find(ativo) || cands[0];
+  return r.nome;
+}
+const fornadasOrfas = () => S.Fornadas.filter(f => !receita(f.receita));
+function corrigirReceitasFornadas(){
+  const fs = fornadasOrfas().sort((a,b) => String(a.data).localeCompare(String(b.data)));
+  const op = (sel) => `<option value="">Escolha…</option>` + S.Receitas.map(r => `<option value="${esc(r.nome)}" ${r.nome === sel ? 'selected' : ''}>${esc(r.nome)}${ativo(r) ? '' : ' (inativa)'} · rende ${num(r.rendimento_padrao)}</option>`).join('');
+  const m = abrirModal('Corrigir a receita das fornadas', `<p class="muted" style="margin:0 0 12px">Estas fornadas estão com um nome que não é de nenhuma receita cadastrada. O app sugeriu a receita mais provável; confira e ajuste se precisar.</p>
+    ${fs.map(f => `<div class="campo"><label for="rf_${esc(f.id)}">${dataBR(f.data)} · gravado como “${esc(f.receita)}” · ${num(f.rendimento_real)} un</label>
+      <select id="rf_${esc(f.id)}" data-rf="${esc(f.id)}">${op(receitaProvavel(f))}</select></div>`).join('')}
+    <p class="muted" style="font-size:13px;margin:4px 0 0">Só o nome da receita muda. O custo, o número do lote e as vendas ligadas continuam iguais.</p>`, {salvar:'Corrigir'});
+  m.onSalvar = async () => {
+    const escolhas = [...m.querySelectorAll('[data-rf]')].map(s => [s.dataset.rf, s.value]).filter(([, v]) => v);
+    if (!escolhas.length) throw new Error('Escolha a receita de ao menos uma fornada.');
+    const botao = m.querySelector('[data-ok]'); let k = 0;
+    for (const [fid, rec] of escolhas){ await salvar('Fornadas', {receita:rec}, fid); botao.textContent = `Salvando ${++k} de ${escolhas.length}…`; }
+    toast(`${escolhas.length} ${escolhas.length === 1 ? 'fornada corrigida' : 'fornadas corrigidas'}`);
+  };
+}
+
 /* ---- Numeração dos lotes por sabor ---- */
 function planoRenumerar(){
   const porSabor = {}, mud = [];
@@ -2385,7 +2416,7 @@ function telaLotes(){
   const linha = (t, val, cls = '') => `<tr><td>${t}</td><td class="r num ${cls}">${val}</td></tr>`;
   const card = ({f, r}) => {
     const pv = r.prod ? r.vend / r.prod * 100 : 0, pp = r.prod ? r.perd / r.prod * 100 : 0;
-    return `<section class="panel"><div class="grupo-top"><div><b>${esc(rotLote(f))}</b>${saborLote(f) !== f.receita ? `<div class="muted" style="font-size:12.5px">Receita: ${esc(f.receita)}</div>` : ''}
+    return `<section class="panel"><div class="grupo-top"><div><b>${esc(rotLote(f))}</b>${!receita(f.receita) ? `<div class="alerta" style="font-size:12.5px">Receita “${esc(f.receita)}” não existe no cadastro</div>` : !mesmoSabor(saborLote(f), f.receita) ? `<div class="muted" style="font-size:12.5px">Receita: ${esc(f.receita)}</div>` : ''}
       <div class="muted" style="font-size:13px">${dataBR(f.data)} · custo do lote ${brl(r.custo)} · ${brl(r.cu)} por unidade</div></div>
       <span class="badge ${r.rest > 0 ? 'b-warn' : 'b-ok'}">${r.rest > 0 ? 'Em venda' : 'Encerrado'}</span></div>
       <div class="lote-nums"><div><b class="num">${r.prod}</b><small>Produzidas</small></div><div><b class="num">${r.vend}</b><small>Vendidas</small></div>
@@ -2409,7 +2440,10 @@ function telaLotes(){
   ${semLote || semCusto ? `<section class="panel" style="margin-bottom:14px"><div class="grupo-top"><div><b>Registros de antes dos lotes</b>
     <div class="muted" style="font-size:13px">${[semLote ? `${semLote} ${semLote === 1 ? 'venda sem lote' : 'vendas sem lote'}` : '', semCusto ? `${semCusto} ${semCusto === 1 ? 'fornada sem número ou custo' : 'fornadas sem número ou custo'}` : ''].filter(Boolean).join(' · ')}</div></div>
     <button class="btn pri" data-ligar>Organizar agora</button></div></section>` : ''}
-  ${!semCusto && planoRenumerar().length ? `<section class="panel" style="margin-bottom:14px"><div class="grupo-top"><div><b>Numeração por sabor</b>
+  ${fornadasOrfas().length ? `<section class="panel" style="margin-bottom:14px;border-color:var(--warn)"><div class="grupo-top"><div><b>Fornadas com receita desconhecida</b>
+    <div class="muted" style="font-size:13px">${fornadasOrfas().length} ${fornadasOrfas().length === 1 ? 'fornada está' : 'fornadas estão'} com um nome que não é de nenhuma receita (ex.: “${esc(fornadasOrfas()[0].receita)}”). Corrija antes de renumerar ou ligar vendas.</div></div>
+    <button class="btn pri" data-fixrec>Corrigir</button></div></section>` : ''}
+  ${!fornadasOrfas().length && !semCusto && planoRenumerar().length ? `<section class="panel" style="margin-bottom:14px"><div class="grupo-top"><div><b>Numeração por sabor</b>
     <div class="muted" style="font-size:13px">${planoRenumerar().length} ${planoRenumerar().length === 1 ? 'lote precisa' : 'lotes precisam'} de um novo número para cada sabor ter a sua sequência</div></div>
     <button class="btn pri" data-renum>Renumerar</button></div></section>` : ''}
   ${ls.length ? `<div class="grid g2">${ls.map(card).join('')}</div>`
@@ -2466,6 +2500,7 @@ function ligar(base){
   v.querySelectorAll('[data-flote]').forEach(b => b.onclick = () => { S.filtroLote = b.dataset.flote; rota(); });
   v.querySelectorAll('[data-ligar]').forEach(b => b.onclick = () => organizarAntigos());
   v.querySelectorAll('[data-renum]').forEach(b => b.onclick = () => renumerarLotes());
+  v.querySelectorAll('[data-fixrec]').forEach(b => b.onclick = () => corrigirReceitasFornadas());
   v.querySelectorAll('[data-est]').forEach(b => b.onclick = async () => { b.disabled = true; try{ await acaoEstoque(b.dataset.est, b.dataset.id); }catch(e){ toast(e.message, true); b.disabled = false; } });
   v.querySelectorAll('[data-novacompra]').forEach(b => b.onclick = () => formCadastro('Compras', null, {ingrediente:b.dataset.novacompra, data:hoje(), unidade:'un', tipo:'Ingrediente'}));
   const fl = v.querySelector('[data-fl]'); if (fl) fl.onchange = () => { S.filtroLocal = fl.value; rota(); };
