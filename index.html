@@ -444,10 +444,12 @@ async function excluir(tabela, id){
 
 /* ============ CÁLCULOS ============ */
 const ingrediente = nome => S.Ingredientes.find(i => i.nome === nome);
-const receita = nome => S.Receitas.find(r => r.nome === nome);
+// compara nomes ignorando maiúsculas, acentos e espaços sobrando (ex.: "Tradicional " = "tradicional")
+const chave = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim().toLowerCase();
+const receita = nome => S.Receitas.find(r => r.nome === nome) || S.Receitas.find(r => chave(r.nome) === chave(nome));
 const local = nome => S.Locais.find(l => l.nome === nome);
 const custoIng = i => { if (!i) return 0; const e = estoqueDe(i.nome); return e.emUso ? e.emUso.pu : precoCadastro(i); };
-const itensDe = rec => S.ReceitaItens.filter(x => x.receita === rec);
+const itensDe = rec => S.ReceitaItens.filter(x => chave(x.receita) === chave(rec));
 const custoForma = rec => itensDe(rec).reduce((s, x) => s + num(x.quantidade) * custoIng(ingrediente(x.ingrediente)), 0);
 const adicional = aplic => S.CustosAdicionais.filter(c => ativo(c) && c.aplicacao === aplic && num(c.qtd_pacote))
   .reduce((s, c) => s + num(c.preco_pacote) / num(c.qtd_pacote), 0);
@@ -457,14 +459,15 @@ const custoUnit = (rec, rend) => { const r = num(rend) || rendPadrao(rec); retur
 /* ---- Lotes (cada fornada é um lote, com o custo gravado no dia da produção) ---- */
 const loteDe = id => id ? S.Fornadas.find(f => String(f.id) === String(id)) : null;
 const nomeLote = f => f ? 'Lote ' + (num(f.lote) || '?') : '';
-const proximoLote = rec => { const s = saborDe(rec); return S.Fornadas.filter(f => saborLote(f) === s).reduce((m, f) => Math.max(m, num(f.lote)), 0) + 1; };
+const proximoLote = rec => { const s = saborDe(rec); return S.Fornadas.filter(f => mesmoSabor(saborLote(f), s)).reduce((m, f) => Math.max(m, num(f.lote)), 0) + 1; };
 /* ---- Sabores e pedidos ---- */
-const saborDe = rec => { const r = receita(rec); return String((r && r.sabor) || rec || '').trim(); };
+const saborDe = rec => { const r = receita(rec); return String((r && String(r.sabor || '').trim()) || (r && r.nome) || rec || '').trim(); };
+const mesmoSabor = (a, b) => chave(a) === chave(b);
 const saborLote = f => f ? saborDe(f.receita) : '';
 const rotLote = f => f ? `${saborLote(f)} · ${nomeLote(f)}` : '';
-const sabores = () => [...new Set(S.Receitas.filter(ativo).map(r => saborDe(r.nome)))];
-const receitaDoSabor = s => (S.Receitas.filter(r => ativo(r) && saborDe(r.nome) === s).slice(-1)[0] || S.Receitas.find(r => saborDe(r.nome) === s) || {}).nome || '';
-const lotesDoSabor = s => S.Fornadas.filter(f => saborLote(f) === s).sort((a,b) => String(b.data).localeCompare(String(a.data)) || num(b.lote) - num(a.lote));
+const sabores = () => { const vistos = new Map(); S.Receitas.filter(ativo).forEach(r => { const s = saborDe(r.nome); if (!vistos.has(chave(s))) vistos.set(chave(s), s); }); return [...vistos.values()]; };
+const receitaDoSabor = s => (S.Receitas.filter(r => ativo(r) && mesmoSabor(saborDe(r.nome), s)).slice(-1)[0] || S.Receitas.find(r => mesmoSabor(saborDe(r.nome), s)) || {}).nome || '';
+const lotesDoSabor = s => S.Fornadas.filter(f => mesmoSabor(saborLote(f), s)).sort((a,b) => String(b.data).localeCompare(String(a.data)) || num(b.lote) - num(a.lote));
 const pedidoDe = v => String(v.pedido || v.id);
 const linhasDoPedido = v => v.pedido ? S.Vendas.filter(x => String(x.pedido) === String(v.pedido)) : [v];
 const nPedidos = vs => new Set(vs.map(pedidoDe)).size;
@@ -510,7 +513,7 @@ function calcVenda(v, primeiro){
   const reserva = S.config.regra_reserva === 'percentual' ? valor * pct(S.config.reserva_percentual) : custo;
   return { custo_preparo:r2(custo), repasse:r2(repasse), reserva:r2(reserva), lucro_disponivel:r2(valor - custo - repasse - reserva) };
 }
-function precosDe(rec){ return S.Precos.filter(p => p.receita === rec && ativo(p) && num(p.quantidade) > 0).sort((a,b) => num(b.quantidade) - num(a.quantidade)); }
+function precosDe(rec){ return S.Precos.filter(p => chave(p.receita) === chave(rec) && ativo(p) && num(p.quantidade) > 0).sort((a,b) => num(b.quantidade) - num(a.quantidade)); }
 function valorAuto(rec, qtd){
   const ps = precosDe(rec); let n = qtd, total = 0; const partes = [];
   for (const p of ps){ const k = Math.floor(n / num(p.quantidade)); if (k > 0){ total += k * num(p.preco); n -= k * num(p.quantidade); partes.push((k > 1 ? k + '× ' : '') + p.descricao); } }
@@ -917,7 +920,7 @@ function formVenda(id){
   const base = id ? S.Vendas.find(x => String(x.id) === String(id)) : null;
   const linhas = base ? linhasDoPedido(base) : [];
   const v = base ? {...base} : {data:hoje(), status:'Pendente', forma_pagamento:'Pix'};
-  const listaSabores = () => { const s = sabores(); linhas.forEach(l => { const x = saborDe(l.receita); if (x && !s.includes(x)) s.push(x); }); return s; };
+  const listaSabores = () => { const s = sabores(); linhas.forEach(l => { const x = saborDe(l.receita); if (x && !s.some(y => mesmoSabor(y, x))) s.push(x); }); return s; };
   let seq = 0;
   let itens = linhas.map(l => ({k:++seq, rowId:l.id, sabor:saborDe(l.receita), receita:l.receita, lote:l.lote ? String(l.lote) : '', qtd:num(l.quantidade) || 1, ok:true, rend:l.rendimento}));
   let valorManual = !!base;
@@ -944,7 +947,7 @@ function formVenda(id){
   const qtdOriginal = fid => soma(linhas.filter(l => String(l.lote) === String(fid)), 'quantidade');
   const qtdOutros = (fid, it) => itens.filter(x => x !== it && String(x.lote) === String(fid)).reduce((s, x) => s + num(x.qtd), 0);
   const disponivel = (f, it) => resumoLote(f).rest + qtdOriginal(f.id) - qtdOutros(f.id, it);
-  const receitaItem = it => { const f = loteDe(it.lote); return f ? f.receita : (it.receita && saborDe(it.receita) === it.sabor ? it.receita : receitaDoSabor(it.sabor)); };
+  const receitaItem = it => { const f = loteDe(it.lote); return f ? (receita(f.receita) || {}).nome || f.receita : (it.receita && mesmoSabor(saborDe(it.receita), it.sabor) ? it.receita : receitaDoSabor(it.sabor)); };
   const iniciarLote = it => {
     const todos = lotesDoSabor(it.sabor), ab = todos.filter(f => disponivel(f, it) > 0);
     it.lote = ab[0] ? String(ab[0].id) : (todos[0] ? String(todos[0].id) : '');
@@ -1014,7 +1017,7 @@ function formVenda(id){
     const ss = listaSabores();
     q('#v_itens').innerHTML = itens.map((it, i) => `<div class="item-venda" data-k="${it.k}">
       ${itens.length > 1 ? `<div class="iv-top"><b>Item ${i + 1}</b><button type="button" class="iv-del" data-del aria-label="Remover item ${i + 1}">×</button></div>` : ''}
-      <div class="chips">${ss.map(s => `<button type="button" class="chip ${s === it.sabor ? 'on' : ''}" data-sab="${esc(s)}">${esc(s)}</button>`).join('')}</div>
+      <div class="chips">${ss.map(s => `<button type="button" class="chip ${mesmoSabor(s, it.sabor) ? 'on' : ''}" data-sab="${esc(s)}">${esc(s)}</button>`).join('')}</div>
       <div class="iv-linha">
         <button type="button" class="lote-campo ${it.ok ? '' : 'pendente'}" data-lotebtn>${loteTxt(it)}${it.ok ? '' : '<small>Toque para confirmar o lote</small>'}</button>
         <div class="stepper"><button type="button" data-iq="-1" aria-label="Menos">−</button><input data-iqv type="number" min="1" inputmode="numeric" value="${num(it.qtd)}" aria-label="Quantidade do item ${i + 1}"><button type="button" data-iq="1" aria-label="Mais">+</button></div>
@@ -1036,6 +1039,7 @@ function formVenda(id){
           return `<button type="button" class="lote-op ${String(f.id) === sel && it.ok ? 'on' : ''}" data-pl="${esc(f.id)}"><span><b>${esc(rotLote(f))} · feito em ${dataBR(f.data)}</b>
             <small>${Math.max(d, 0)} ${d === 1 ? 'unidade disponível' : 'unidades disponíveis'} · custo ${brl(r.cu)} por unidade</small></span>${tag}</button>`; }).join('')}
         ${!todos && fechados ? `<button type="button" class="btn" data-todos style="width:100%;margin-bottom:8px">Mostrar ${fechados === 1 ? '1 lote encerrado' : fechados + ' lotes encerrados'}</button>` : ''}
+        ${!tudo.length ? `<p class="alerta" style="margin:0 0 12px">Nenhuma fornada de ${esc(it.sabor)} encontrada. Confira em Lotes se a fornada está com a receita certa, ou se a receita tem o sabor “${esc(it.sabor)}” em Mais → Receitas.</p>` : ''}
         <button type="button" class="lote-op ${!sel && it.ok ? 'on' : ''}" data-pl=""><span><b>Sem lote</b><small>Usa o preço atual dos ingredientes</small></span></button>
         <div style="margin-top:auto;padding-top:12px"><button type="button" class="btn" data-pvoltar style="width:100%">Voltar</button></div>`;
     };
@@ -1051,7 +1055,7 @@ function formVenda(id){
   q('#v_itens').onclick = e => {
     const it = itemDe(e.target); if (!it) return;
     const sab = e.target.closest('[data-sab]');
-    if (sab){ if (sab.dataset.sab !== it.sabor){ it.sabor = sab.dataset.sab; it.receita = ''; iniciarLote(it); valorManual = false; desenharItens(); auto(); } return; }
+    if (sab){ if (!mesmoSabor(sab.dataset.sab, it.sabor)){ it.sabor = sab.dataset.sab; it.receita = ''; iniciarLote(it); valorManual = false; desenharItens(); auto(); } return; }
     if (e.target.closest('[data-lotebtn]')) return abrirPicker(it);
     const bq = e.target.closest('[data-iq]');
     if (bq){ it.qtd = Math.max(1, num(it.qtd) + num(bq.dataset.iq)); valorManual = false; desenharItens(); auto(); return; }
@@ -2273,12 +2277,12 @@ function formFornada(id){
     const atual = !id || (q('#f_recalc') && q('#f_recalc').checked) || rec !== f.receita || !num(f.custo_total) || mudou;
     const c = atual ? custoLote(rec, rend, escolha) : { custo_ingredientes:num(f.custo_ingredientes), custo_adicional:num(f.custo_adicional),
       custo_total:num(f.custo_total), custo_unitario: Math.round(num(f.custo_total) / rend * 10000) / 10000 };
-    return { atual, d:{ lote: id && num(f.lote) && saborDe(rec) === saborLote(f) ? num(f.lote) : proximoLote(rec), data:q('#f_data').value, receita:rec, rendimento_real:rend, perdas:num(q('#f_perd').value), observacao:q('#f_obs').value.trim(), ...c } };
+    return { atual, d:{ lote: id && num(f.lote) && mesmoSabor(saborDe(rec), saborLote(f)) ? num(f.lote) : proximoLote(rec), data:q('#f_data').value, receita:rec, rendimento_real:rend, perdas:num(q('#f_perd').value), observacao:q('#f_obs').value.trim(), ...c } };
   };
   const prev = () => { const {atual, d} = ler();
     q('#f_prev').innerHTML = `<span>Ingredientes</span><b>${brl(d.custo_ingredientes)}</b><span>Custos por fornada</span><b>${brl(d.custo_adicional)}</b>
       <span>Custo do lote</span><b>${brl(d.custo_total)}</b><div class="tot"><span>Custo por unidade (${d.rendimento_real} un)</span><span>${brl(d.custo_unitario)}</span></div>
-      <div class="muted" style="grid-column:1/-1;margin-top:4px">${atual ? 'Com os preços das compras marcadas acima.' : 'Com os preços gravados quando o lote foi criado.'}${!id || saborDe(d.receita) !== saborLote(f) ? ` Será o <b>${esc(saborDe(d.receita))} · Lote ${d.lote}</b>.` : ''}</div>`; };
+      <div class="muted" style="grid-column:1/-1;margin-top:4px">${atual ? 'Com os preços das compras marcadas acima.' : 'Com os preços gravados quando o lote foi criado.'}${!id || !mesmoSabor(saborDe(d.receita), saborLote(f)) ? ` Será o <b>${esc(saborDe(d.receita))} · Lote ${d.lote}</b>.` : ''}</div>`; };
   ['#f_rend','#f_perd','#f_recalc'].forEach(s => { const el = q(s); if (el) el.oninput = el.onchange = prev; });
   q('#f_rec').onchange = () => { escolha = escolhasPadrao(q('#f_rec').value); desenharIngs(); prev(); };
   desenharIngs(); prev();
@@ -2349,10 +2353,10 @@ function organizarAntigos(){
 /* ---- Numeração dos lotes por sabor ---- */
 function planoRenumerar(){
   const porSabor = {}, mud = [];
-  S.Fornadas.forEach(f => (porSabor[saborLote(f)] ||= []).push(f));
+  const nomeSabor = {}; S.Fornadas.forEach(f => { const k = chave(saborLote(f)); nomeSabor[k] ||= saborLote(f); (porSabor[k] ||= []).push(f); });
   Object.entries(porSabor).forEach(([s, fs]) => {
     fs.sort((a,b) => String(a.data).localeCompare(String(b.data)) || (num(a.lote) || 1e9) - (num(b.lote) || 1e9) || String(a.id).localeCompare(String(b.id)));
-    fs.forEach((f, i) => { if (num(f.lote) !== i + 1) mud.push({f, s, de:num(f.lote), para:i + 1}); });
+    fs.forEach((f, i) => { if (num(f.lote) !== i + 1) mud.push({f, s:nomeSabor[s], de:num(f.lote), para:i + 1}); });
   });
   return mud;
 }
